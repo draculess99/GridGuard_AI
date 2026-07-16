@@ -1,0 +1,16 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+*.log
+artifacts/*.joblib
+data/runtime/*.json
+!data/runtime/.gitkeep
+.DS_Store
+
+# Do not commit downloaded Kaggle datasets
+data/kaggle/*.csv
+data/kaggle/*.zip
+!data/kaggle/README.md

@@ -1,0 +1,712 @@
+from __future__ import annotations
+
+import os
+from datetime import datetime, timezone
+
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+from dotenv import load_dotenv
+
+from backend.data import (
+    CANONICAL_COLUMNS,
+    DataLoadError,
+    build_data_profile,
+    data_source_catalog,
+    inspect_kaggle_source,
+    list_kaggle_tables,
+    load_demand_data,
+)
+from backend.decision_intelligence import run_decision_intelligence
+from backend.llm_providers import PROVIDER_MODELS, ProviderError, configured as provider_configured
+from backend.memory import JsonMemoryStore
+from backend.modeling import ModelBundle, train_forecaster
+from backend.persistence import get_decision_store
+from backend.rag import LocalRagIndex
+from backend.service import build_forecast_package
+from backend.token_meter import TokenMeter
+
+load_dotenv()
+
+st.set_page_config(
+    page_title="GridGuard AI",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.markdown(
+    """
+    <style>
+    .block-container {padding-top: 1.25rem; padding-bottom: 2rem;}
+    .gg-card {
+        border: 1px solid rgba(128,128,128,.25);
+        border-radius: 14px;
+        padding: 1rem 1.1rem;
+        background: rgba(128,128,128,.04);
+        margin-bottom: .75rem;
+    }
+    .gg-title {font-size: 2.1rem; font-weight: 750; letter-spacing: -.03em;}
+    .gg-subtitle {opacity: .78; margin-top: -.4rem; margin-bottom: 1rem;}
+    .status-normal {border-left: 6px solid #2e7d32;}
+    .status-watch {border-left: 6px solid #ed9b00;}
+    .status-elevated {border-left: 6px solid #e65100;}
+    .status-critical {border-left: 6px solid #b71c1c;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+@st.cache_data(show_spinner=False)
+def cached_kaggle_tables(raw: bytes, filename: str) -> list[str]:
+    return list_kaggle_tables(raw, filename=filename)
+
+
+@st.cache_data(show_spinner=False)
+def cached_kaggle_inspection(raw: bytes, filename: str, table_name: str | None) -> dict:
+    return inspect_kaggle_source(raw, filename=filename, table_name=table_name)
+
+
+@st.cache_resource
+def resource_store():
+    return get_decision_store()
+
+
+@st.cache_resource
+def resource_memory():
+    return JsonMemoryStore(
+        os.getenv("GRIDGUARD_MEMORY_PATH", "data/runtime/decision_memory.json"),
+        max_records=int(os.getenv("GRIDGUARD_MEMORY_MAX_RECORDS", "200")),
+    )
+
+
+@st.cache_resource
+def resource_token_meter():
+    return TokenMeter(os.getenv("GRIDGUARD_TOKEN_LEDGER_PATH", "data/runtime/token_usage.json"))
+
+
+@st.cache_resource
+def resource_rag():
+    return LocalRagIndex(os.getenv("GRIDGUARD_RAG_DOCS_DIR", "docs/rag"))
+
+
+if "bundle" not in st.session_state:
+    st.session_state.bundle = None
+if "forecast_package" not in st.session_state:
+    st.session_state.forecast_package = None
+if "scenario" not in st.session_state:
+    st.session_state.scenario = {"temperature_delta": 0.0, "outage_mw": 0.0, "demand_shock_pct": 0.0}
+if "last_data_signature" not in st.session_state:
+    st.session_state.last_data_signature = None
+if "data_profile" not in st.session_state:
+    st.session_state.data_profile = None
+if "last_decision_intelligence" not in st.session_state:
+    st.session_state.last_decision_intelligence = None
+
+store = resource_store()
+memory = resource_memory()
+meter = resource_token_meter()
+rag = resource_rag()
+
+provider_labels = {
+    "internal_expert_system": "Internal Expert System (no tokens)",
+    "grok": "Grok — xAI API",
+    "groq": "GroqCloud",
+    "gemini": "Gemini API",
+}
+provider_options = list(provider_labels)
+
+with st.sidebar:
+    st.header("GridGuard Controls")
+    source_labels = {
+        "synthetic": "Synthetic Demo",
+        "kaggle_historical": "Kaggle Historical",
+        "eia_live": "EIA Live",
+    }
+    source_options = list(source_labels)
+    default_source = os.getenv("GRIDGUARD_DATA_MODE", "synthetic").strip().lower()
+    default_source_index = source_options.index(default_source) if default_source in source_options else 0
+    data_mode = st.selectbox(
+        "Data source",
+        source_options,
+        index=default_source_index,
+        format_func=lambda value: source_labels[value],
+        help="Each adapter converts its source into the same canonical hourly GridGuard schema.",
+    )
+
+    kaggle_source = None
+    kaggle_filename = None
+    kaggle_table_name = None
+    kaggle_timestamp_column = None
+    kaggle_demand_column = None
+    kaggle_temperature_column = None
+    kaggle_region = None
+    kaggle_timezone = os.getenv("GRIDGUARD_KAGGLE_TIMEZONE", "America/New_York")
+    kaggle_missing_policy = os.getenv("GRIDGUARD_KAGGLE_MISSING_POLICY", "interpolate").strip().lower()
+    synthetic_seed = 42
+
+    if data_mode == "synthetic":
+        history_days = st.slider("Synthetic history (days)", 30, 365, 90, step=15)
+        synthetic_seed = int(st.number_input("Synthetic random seed", min_value=1, value=42, step=1))
+        st.caption("Generated internally for offline demos and controlled stress testing.")
+
+    elif data_mode == "kaggle_historical":
+        history_days = st.slider("Kaggle history window (days)", 30, 3650, 1095, step=30)
+        kaggle_input_mode = st.radio(
+            "Kaggle input",
+            ["Upload CSV or ZIP", "Configured local file"],
+            horizontal=False,
+        )
+        if kaggle_input_mode == "Upload CSV or ZIP":
+            uploaded_kaggle = st.file_uploader(
+                "Upload Kaggle hourly-energy data",
+                type=["csv", "zip"],
+                help="Supports a single CSV or a Kaggle ZIP containing one or more CSV files.",
+            )
+            if uploaded_kaggle is not None:
+                kaggle_source = uploaded_kaggle.getvalue()
+                kaggle_filename = uploaded_kaggle.name
+        else:
+            kaggle_path = st.text_input(
+                "Local Kaggle file",
+                value=os.getenv("GRIDGUARD_KAGGLE_DATA_PATH", "data/kaggle/hourly_energy_consumption.csv"),
+            )
+            if kaggle_path:
+                kaggle_source = kaggle_path
+                kaggle_filename = os.path.basename(kaggle_path)
+
+        if kaggle_source is not None:
+            try:
+                if isinstance(kaggle_source, bytes):
+                    tables = cached_kaggle_tables(kaggle_source, kaggle_filename or "uploaded.csv")
+                else:
+                    tables = list_kaggle_tables(kaggle_source, filename=kaggle_filename)
+                kaggle_table_name = st.selectbox("CSV within source", tables)
+                if isinstance(kaggle_source, bytes):
+                    inspection = cached_kaggle_inspection(
+                        kaggle_source, kaggle_filename or "uploaded.csv", kaggle_table_name
+                    )
+                else:
+                    inspection = inspect_kaggle_source(
+                        kaggle_source, filename=kaggle_filename, table_name=kaggle_table_name
+                    )
+                timestamp_candidates = inspection["timestamp_candidates"]
+                demand_candidates = inspection["demand_candidates"]
+                temperature_candidates = inspection["temperature_candidates"]
+                if timestamp_candidates:
+                    kaggle_timestamp_column = st.selectbox("Timestamp column", timestamp_candidates)
+                else:
+                    st.error("No timestamp column was detected in the selected CSV.")
+                if demand_candidates:
+                    kaggle_demand_column = st.selectbox("Demand series", demand_candidates)
+                else:
+                    st.error("No numeric demand series was detected in the selected CSV.")
+                temperature_options = ["Use seasonal proxy", *temperature_candidates]
+                selected_temperature = st.selectbox("Temperature feature", temperature_options)
+                kaggle_temperature_column = None if selected_temperature == "Use seasonal proxy" else selected_temperature
+                inferred_region = (kaggle_demand_column or "KAGGLE").removesuffix("_MW").removesuffix(" MW")
+                kaggle_region = st.text_input("Region label", value=inferred_region)
+                kaggle_timezone = st.text_input("Source timezone", value=kaggle_timezone)
+                missing_options = ["interpolate", "drop", "error"]
+                missing_index = missing_options.index(kaggle_missing_policy) if kaggle_missing_policy in missing_options else 0
+                kaggle_missing_policy = st.selectbox(
+                    "Missing-hour policy",
+                    missing_options,
+                    index=missing_index,
+                    format_func=lambda value: {
+                        "interpolate": "Interpolate and flag",
+                        "drop": "Drop missing hours",
+                        "error": "Stop and report",
+                    }[value],
+                )
+                st.caption(
+                    f"Detected {inspection['rows']:,} rows, {len(demand_candidates)} demand series, "
+                    f"and {len(temperature_candidates)} temperature candidates."
+                )
+            except DataLoadError as exc:
+                st.error(str(exc))
+        else:
+            st.info("Upload a Kaggle CSV/ZIP or configure a local file path.")
+
+    else:
+        default_eia_days = max(30, min(180, int(os.getenv("GRIDGUARD_EIA_HISTORY_HOURS", "2160")) // 24))
+        history_days = st.slider("EIA history (days)", 30, 180, default_eia_days, step=15)
+        st.caption(f"Balancing authority: {os.getenv('GRIDGUARD_EIA_RESPONDENT', 'ISNE')}")
+        if not os.getenv("EIA_API_KEY"):
+            st.warning(
+                "EIA_API_KEY is not configured. Live loading will fail clearly rather than being presented as live data."
+            )
+
+    forecast_hours = st.slider(
+        "Forecast horizon", 12, 48, int(os.getenv("GRIDGUARD_FORECAST_HOURS", "24")), step=6
+    )
+    capacity_mw = st.number_input(
+        "Available capacity (MW)", min_value=1000.0, value=27000.0, step=500.0
+    )
+    train_clicked = st.button("Train / refresh forecast", type="primary", width="stretch")
+
+    st.divider()
+    st.subheader("Decision intelligence")
+    default_provider = os.getenv("GRIDGUARD_DECISION_PROVIDER", "internal_expert_system").strip().lower()
+    provider_index = provider_options.index(default_provider) if default_provider in provider_options else 0
+    decision_provider = st.selectbox(
+        "Decision engine",
+        provider_options,
+        index=provider_index,
+        format_func=lambda value: provider_labels[value],
+    )
+    model_options = PROVIDER_MODELS.get(decision_provider, ["deterministic-rules-v1"])
+    env_model_names = {
+        "grok": os.getenv("GRIDGUARD_GROK_MODEL", "grok-4.5"),
+        "groq": os.getenv("GRIDGUARD_GROQ_MODEL", "openai/gpt-oss-120b"),
+        "gemini": os.getenv("GRIDGUARD_GEMINI_MODEL", "gemini-2.5-flash"),
+    }
+    default_model = env_model_names.get(decision_provider, "deterministic-rules-v1")
+    if default_model not in model_options:
+        model_options = [default_model, *model_options]
+    selected_model = st.selectbox("Model", model_options)
+    max_completion_tokens = st.slider("Maximum response tokens", 200, 1500, 700, step=100)
+
+    if decision_provider != "internal_expert_system":
+        if provider_configured(decision_provider):
+            st.success(f"{provider_labels[decision_provider]} key detected.")
+        else:
+            required = {"grok": "XAI_API_KEY", "groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY"}[decision_provider]
+            st.warning(f"{required} is not configured. The internal expert system remains available.")
+
+        usage = meter.snapshot()["providers"][decision_provider]
+        budget = int(os.getenv(f"GRIDGUARD_{decision_provider.upper()}_TOKEN_BUDGET", "100000"))
+        st.caption(f"Local token meter: **{usage['total_tokens']:,} / {budget:,}**")
+        st.progress(min(usage["total_tokens"] / max(budget, 1), 1.0))
+        st.caption(f"Prompt {usage['prompt_tokens']:,} · Completion {usage['completion_tokens']:,} · Requests {usage['requests']:,}")
+        if st.button("Reset selected token meter", width="stretch"):
+            meter.reset(decision_provider)
+            st.success("Local token counter reset. Provider billing/quota is unchanged.")
+            st.rerun()
+    else:
+        st.caption("Deterministic rules use no external LLM tokens.")
+
+    st.divider()
+    persistence = store.status()
+    rag_status = rag.status()
+    st.caption(f"Persistence: **{persistence['mode'].upper()}**")
+    st.caption(f"Shared database: **{'Yes' if persistence['shared'] else 'No'}**")
+    st.caption(f"JSON memory records: **{memory.status()['records']}**")
+    st.caption(f"RAG index: **{rag_status['documents']} docs / {rag_status['chunks']} chunks**")
+    st.caption("Forecast: **XGBoost + seasonal-naive baseline**")
+
+source_signature = (
+    data_mode,
+    history_days,
+    synthetic_seed,
+    kaggle_filename,
+    kaggle_table_name,
+    kaggle_timestamp_column,
+    kaggle_demand_column,
+    kaggle_temperature_column,
+    kaggle_region,
+    kaggle_timezone,
+    kaggle_missing_policy,
+    len(kaggle_source) if isinstance(kaggle_source, bytes) else str(kaggle_source or ""),
+)
+
+if train_clicked or st.session_state.bundle is None or st.session_state.last_data_signature != source_signature:
+    try:
+        with st.spinner("Loading the selected data source and training XGBoost..."):
+            demand = load_demand_data(
+                mode=data_mode,
+                history_days=history_days,
+                synthetic_seed=synthetic_seed,
+                kaggle_source=kaggle_source,
+                kaggle_filename=kaggle_filename,
+                kaggle_table_name=kaggle_table_name,
+                kaggle_timestamp_column=kaggle_timestamp_column,
+                kaggle_demand_column=kaggle_demand_column,
+                kaggle_temperature_column=kaggle_temperature_column,
+                kaggle_region=kaggle_region,
+                kaggle_timezone=kaggle_timezone,
+                kaggle_missing_policy=kaggle_missing_policy,
+            )
+            data_profile = build_data_profile(demand)
+            bundle = train_forecaster(demand)
+            package = build_forecast_package(
+                bundle=bundle,
+                horizon=forecast_hours,
+                capacity_mw=float(capacity_mw),
+                scenario=st.session_state.scenario,
+            )
+            st.session_state.bundle = bundle
+            st.session_state.forecast_package = package
+            st.session_state.data_profile = data_profile
+            st.session_state.last_data_signature = source_signature
+            st.session_state.last_decision_intelligence = None
+    except DataLoadError as exc:
+        st.error(str(exc))
+        st.stop()
+    except Exception as exc:
+        st.exception(exc)
+        st.stop()
+
+bundle: ModelBundle = st.session_state.bundle
+package = st.session_state.forecast_package
+data_profile = st.session_state.data_profile or build_data_profile(bundle.history)
+risk = package["risk"]
+forecast = package["forecast"]
+
+st.markdown('<div class="gg-title">⚡ GridGuard AI</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="gg-subtitle">XGBoost forecasting, X-Decision intelligence, RAG-grounded explanations, and human-approved demand response</div>',
+    unsafe_allow_html=True,
+)
+
+tab_control, tab_intelligence, tab_scenario, tab_model, tab_audit, tab_data = st.tabs(
+    ["Control Tower", "X-Decision & RAG", "Scenario Lab", "Model Quality", "Audit & Operations", "Data Sources"]
+)
+
+with tab_control:
+    st.caption(
+        f"Active source: **{source_labels[data_mode]}** · Region: **{data_profile.get('region', 'Unknown')}** · "
+        f"Rows: **{data_profile.get('rows_loaded', len(bundle.history)):,}** · "
+        f"Temperature: **{data_profile.get('temperature_method', 'dataset')}**"
+    )
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Forecast peak", f"{risk['peak_mw']:,.0f} MW")
+    c2.metric("Peak hour", pd.Timestamp(risk["peak_time"]).strftime("%a %H:%M"))
+    c3.metric("Reserve margin", f"{risk['reserve_margin_pct']:.1f}%")
+    c4.metric("High-risk hours", str(risk["high_risk_hours"]))
+    c5.metric("Risk level", risk["level"])
+
+    css_class = f"status-{risk['level'].lower()}"
+    st.markdown(
+        f"""
+        <div class="gg-card {css_class}">
+          <strong>{risk['level']} — {risk['headline']}</strong><br>
+          {risk['recommendation']}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=bundle.history["timestamp"].tail(168), y=bundle.history["demand_mw"].tail(168), name="Recent actual", mode="lines"))
+    fig.add_trace(go.Scatter(x=forecast["timestamp"], y=forecast["forecast_mw"], name="XGBoost forecast", mode="lines+markers"))
+    fig.add_hline(y=float(capacity_mw), line_dash="dash", annotation_text="Available capacity")
+    fig.update_layout(
+        title="Recent demand and forward forecast",
+        xaxis_title="Timestamp",
+        yaxis_title="Demand (MW)",
+        height=440,
+        legend_orientation="h",
+        margin=dict(l=20, r=20, t=60, b=20),
+    )
+    st.plotly_chart(fig, width="stretch")
+
+    st.subheader("Operator decision")
+    decision_col, note_col = st.columns([1, 2])
+    with note_col:
+        operator_note = st.text_area("Decision rationale", placeholder="Record the operational rationale, constraints, and responsible reviewer.")
+    with decision_col:
+        approve = st.button("Approve recommendation", type="primary", width="stretch")
+        reject = st.button("Reject / hold", width="stretch")
+
+    if approve or reject:
+        status = "approved" if approve else "rejected"
+        record = {
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "decision_status": status,
+            "risk_level": risk["level"],
+            "peak_mw": risk["peak_mw"],
+            "reserve_margin_pct": risk["reserve_margin_pct"],
+            "recommendation": risk["recommendation"],
+            "operator_note": operator_note.strip(),
+            "scenario": st.session_state.scenario,
+            "model_version": bundle.model_version,
+            "data_mode": data_mode,
+            "data_source": data_profile.get("source"),
+            "data_region": data_profile.get("region"),
+        }
+        store.append(record)
+        st.success(f"Decision {status} and recorded in {store.status()['mode']} persistence.")
+
+    st.dataframe(
+        forecast.assign(
+            timestamp=lambda frame: frame["timestamp"].dt.strftime("%Y-%m-%d %H:%M"),
+            forecast_mw=lambda frame: frame["forecast_mw"].round(0),
+        ),
+        width="stretch",
+        hide_index=True,
+    )
+
+with tab_intelligence:
+    st.subheader("X-Decision System")
+    st.write(
+        "The hybrid decision layer combines the XGBoost forecast, transparent expert rules, local RAG policy retrieval, "
+        "and an optional LLM explanation. The internal expert recommendation remains visible and human approval is always required."
+    )
+    i1, i2, i3, i4 = st.columns(4)
+    i1.metric("Engine", provider_labels[decision_provider])
+    i2.metric("Model", selected_model)
+    i3.metric("RAG chunks", rag.status()["chunks"])
+    i4.metric("Memory records", memory.status()["records"])
+
+    operator_question = st.text_area(
+        "Ask for an operational decision briefing",
+        value="Explain the current grid risk, the rules that fired, the recommended action, and what the human operator must verify.",
+        height=110,
+    )
+    generate_clicked = st.button("Generate X-Decision briefing", type="primary")
+    if generate_clicked:
+        try:
+            with st.spinner(f"Running {provider_labels[decision_provider]} with local RAG..."):
+                result = run_decision_intelligence(
+                    provider=decision_provider,
+                    model=selected_model,
+                    risk=risk,
+                    model_metrics=bundle.metrics,
+                    scenario=st.session_state.scenario,
+                    operator_question=operator_question,
+                    rag=rag,
+                    memory=memory,
+                    meter=meter,
+                    max_completion_tokens=max_completion_tokens,
+                )
+                st.session_state.last_decision_intelligence = result
+        except ProviderError as exc:
+            st.error(str(exc))
+        except Exception as exc:
+            st.exception(exc)
+
+    result = st.session_state.last_decision_intelligence
+    if result:
+        st.markdown(result["text"])
+        u1, u2, u3, u4 = st.columns(4)
+        u1.metric("Provider", result["provider"].upper())
+        u2.metric("Prompt tokens", f"{result['usage']['prompt_tokens']:,}")
+        u3.metric("Completion tokens", f"{result['usage']['completion_tokens']:,}")
+        u4.metric("Total tokens", f"{result['usage']['total_tokens']:,}")
+
+        with st.expander("Explainable expert-system trace", expanded=True):
+            st.metric("Rule confidence", f"{result['expert']['confidence']:.0%}")
+            st.dataframe(pd.DataFrame(result["expert"]["rules_fired"]), width="stretch", hide_index=True)
+            st.warning(result["expert"]["guardrail"])
+
+        with st.expander("Retrieved RAG sources"):
+            if result["rag_sources"]:
+                for source in result["rag_sources"]:
+                    st.code(source, language="text")
+            else:
+                st.info("No RAG chunks met the retrieval threshold for this question.")
+
+    with st.expander("JSON-backed decision memory"):
+        memories = memory.list(limit=20)
+        if memories:
+            st.dataframe(pd.DataFrame(memories), width="stretch", hide_index=True)
+        else:
+            st.info("No decision-intelligence conversations have been stored.")
+        if st.button("Clear decision memory"):
+            memory.clear()
+            st.session_state.last_decision_intelligence = None
+            st.success("Local JSON-backed decision memory cleared.")
+            st.rerun()
+
+with tab_scenario:
+    st.write("Stress the forecast without retraining the model.")
+    sc1, sc2, sc3 = st.columns(3)
+    with sc1:
+        temperature_delta = st.slider("Temperature change (°F)", -15.0, 20.0, float(st.session_state.scenario["temperature_delta"]), 1.0)
+    with sc2:
+        outage_mw = st.slider("Generation outage (MW)", 0.0, 6000.0, float(st.session_state.scenario["outage_mw"]), 250.0)
+    with sc3:
+        demand_shock_pct = st.slider("Unexpected demand shock (%)", -10.0, 20.0, float(st.session_state.scenario["demand_shock_pct"]), 1.0)
+
+    if st.button("Run scenario", type="primary"):
+        scenario = {"temperature_delta": temperature_delta, "outage_mw": outage_mw, "demand_shock_pct": demand_shock_pct}
+        st.session_state.scenario = scenario
+        st.session_state.forecast_package = build_forecast_package(
+            bundle=bundle,
+            horizon=forecast_hours,
+            capacity_mw=float(capacity_mw),
+            scenario=scenario,
+        )
+        st.session_state.last_decision_intelligence = None
+        st.rerun()
+
+    srisk = st.session_state.forecast_package["risk"]
+    sf = st.session_state.forecast_package["forecast"]
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Scenario risk", srisk["level"])
+    m2.metric("Scenario peak", f"{srisk['peak_mw']:,.0f} MW")
+    m3.metric("Effective capacity", f"{srisk['effective_capacity_mw']:,.0f} MW")
+    m4.metric("Reserve margin", f"{srisk['reserve_margin_pct']:.1f}%")
+
+    scenario_fig = go.Figure(go.Scatter(x=sf["timestamp"], y=sf["forecast_mw"], mode="lines+markers", name="Scenario forecast"))
+    scenario_fig.add_hline(y=srisk["effective_capacity_mw"], line_dash="dash", annotation_text="Effective capacity")
+    scenario_fig.update_layout(height=400, yaxis_title="Demand (MW)", title="Scenario forecast")
+    st.plotly_chart(scenario_fig, width="stretch")
+    st.info(srisk["recommendation"])
+
+with tab_model:
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("XGBoost MAE", f"{bundle.metrics['xgb_mae']:,.0f} MW")
+    m2.metric("Naive MAE", f"{bundle.metrics['naive_mae']:,.0f} MW")
+    m3.metric("XGBoost RMSE", f"{bundle.metrics['xgb_rmse']:,.0f} MW")
+    improvement = bundle.metrics["mae_improvement_pct"]
+    m4.metric("MAE improvement", f"{improvement:.1f}%")
+
+    if improvement > 0:
+        st.success("XGBoost beats the seasonal-naive baseline on the chronological holdout.")
+    else:
+        st.warning("XGBoost does not beat the seasonal-naive baseline yet. Treat the baseline as the selected model until features or tuning improve.")
+
+    imp = bundle.feature_importance.head(15).sort_values("importance")
+    imp_fig = go.Figure(go.Bar(x=imp["importance"], y=imp["feature"], orientation="h"))
+    imp_fig.update_layout(title="XGBoost feature importance", height=480, xaxis_title="Gain/importance")
+    st.plotly_chart(imp_fig, width="stretch")
+
+    comparison = bundle.test_predictions.copy()
+    compare_fig = go.Figure()
+    compare_fig.add_trace(go.Scatter(x=comparison["timestamp"], y=comparison["actual_mw"], name="Actual"))
+    compare_fig.add_trace(go.Scatter(x=comparison["timestamp"], y=comparison["xgb_mw"], name="XGBoost"))
+    compare_fig.add_trace(go.Scatter(x=comparison["timestamp"], y=comparison["naive_mw"], name="Seasonal naive"))
+    compare_fig.update_layout(title="Chronological holdout performance", height=430, yaxis_title="Demand (MW)")
+    st.plotly_chart(compare_fig, width="stretch")
+
+with tab_audit:
+    st.subheader("Persistence and service readiness")
+    status = store.status()
+    memory_status = memory.status()
+    rag_status = rag.status()
+    p1, p2, p3, p4 = st.columns(4)
+    p1.metric("Decision persistence", status["mode"].upper())
+    p2.metric("Shared", "Yes" if status["shared"] else "No")
+    p3.metric("JSON memory", f"{memory_status['records']} records")
+    p4.metric("RAG", "Ready" if rag_status["ready"] else "Empty")
+
+    st.code(
+        f"""Streamlit UI
+  ↓
+XGBoost forecast + expert rules + local RAG
+  ↓
+Optional Grok / Groq / Gemini explanation
+  ↓
+Human approval
+  ↓
+{status['mode'].upper()} decision store + JSON memory/token ledger""",
+        language="text",
+    )
+
+    st.subheader("Token ledger")
+    usage_snapshot = meter.snapshot()["providers"]
+    usage_rows = [{"provider": provider, **counters} for provider, counters in usage_snapshot.items()]
+    st.dataframe(pd.DataFrame(usage_rows), width="stretch", hide_index=True)
+    st.caption("These are tokens reported to this app by API responses. Resetting the meter does not reset provider quotas or billing.")
+    if st.button("Reset all local token meters"):
+        meter.reset()
+        st.success("All GridGuard token counters reset.")
+        st.rerun()
+
+    st.subheader("Human decision records")
+    records = store.list(limit=100)
+    if records:
+        st.dataframe(pd.DataFrame(records), width="stretch", hide_index=True)
+    else:
+        st.info("No human decisions have been recorded yet.")
+
+    st.caption("Flask endpoints: /health, /ready, /api/status, /api/decisions, /api/data/sources, /api/intelligence/status, /api/tokens")
+
+with tab_data:
+    st.subheader("Three-source data ingestion")
+    st.write(
+        "GridGuard can run from one selected source at a time. Every adapter validates and converts its input into the same "
+        "canonical hourly schema before feature engineering and XGBoost training."
+    )
+
+    source_catalog = data_source_catalog(kaggle_available=kaggle_source is not None)
+    source_columns = st.columns(3)
+    for column, descriptor in zip(source_columns, source_catalog):
+        with column:
+            is_active = descriptor["id"] == data_mode
+            readiness = "ACTIVE" if is_active else ("READY" if descriptor["ready"] else "NEEDS CONFIGURATION")
+            data_kind = "Real data" if descriptor["real_data"] else "Synthetic data"
+            st.markdown(
+                f"""
+                <div class="gg-card">
+                  <strong>{descriptor['label']}</strong><br>
+                  <small>{readiness} · {data_kind}</small><br><br>
+                  {descriptor['purpose']}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    st.code(
+        """Synthetic generator ─┐
+Kaggle CSV / ZIP ───┼──> Source adapter ──> Validation ──> Canonical hourly schema ──> XGBoost
+EIA hourly API ─────┘""",
+        language="text",
+    )
+
+    st.subheader("Active-source profile")
+    d1, d2, d3, d4, d5 = st.columns(5)
+    d1.metric("Source", source_labels[data_mode])
+    d2.metric("Region", str(data_profile.get("region", "Unknown")))
+    d3.metric("Rows", f"{data_profile.get('rows_loaded', len(bundle.history)):,}")
+    d4.metric("Missing hours", f"{data_profile.get('missing_hours_detected', 0):,}")
+    d5.metric("Interpolated", f"{data_profile.get('interpolated_hours', 0):,}")
+
+    profile_rows = [
+        {"property": key.replace("_", " ").title(), "value": str(value)}
+        for key, value in data_profile.items()
+        if key != "quality_counts"
+    ]
+    st.dataframe(pd.DataFrame(profile_rows), width="stretch", hide_index=True)
+
+    st.subheader("Canonical GridGuard schema")
+    schema_purpose = {
+        "timestamp": "UTC hourly observation",
+        "demand_mw": "Target electricity demand in MW",
+        "temperature_f": "Observed temperature or clearly identified seasonal proxy",
+        "region": "Balancing authority or historical demand series",
+        "is_holiday": "Calendar indicator used by feature engineering",
+        "source": "Traceable source identifier",
+        "data_quality_status": "Observed, interpolated, or synthetic status",
+    }
+    st.dataframe(
+        pd.DataFrame(
+            [{"column": column, "purpose": schema_purpose[column]} for column in CANONICAL_COLUMNS]
+        ),
+        width="stretch",
+        hide_index=True,
+    )
+
+    st.subheader("Latest normalized observations")
+    st.dataframe(bundle.history.tail(100), width="stretch", hide_index=True)
+
+    with st.expander("How to use each source", expanded=True):
+        st.markdown(
+            """
+            **Synthetic Demo** — works immediately without credentials. Use it for offline demonstrations and controlled stress cases.
+
+            **Kaggle Historical** — upload a CSV or ZIP, choose the timestamp and MW demand series, select a missing-hour policy, and train on a multiyear historical window. PJM-style columns such as `Datetime`, `PJME_MW`, `AEP_MW`, and similar regional series are detected automatically.
+
+            **EIA Live** — configure `EIA_API_KEY` and a balancing authority such as `ISNE`. The connector retrieves recent hourly demand and clearly reports API failures. It never silently substitutes synthetic data.
+            """
+        )
+
+    st.subheader("Limitations")
+    st.markdown(
+        """
+        - The MVP uses point forecasts and does not yet provide calibrated uncertainty intervals.
+        - Synthetic mode is representative rather than an ISO-NE replica and is not presented as real-world validation.
+        - Kaggle datasets may use regional local time; the selected timezone is converted to UTC and shown in the profile.
+        - Kaggle and EIA modes use a clearly identified seasonal temperature proxy unless the source includes a temperature column.
+        - EIA live mode currently loads demand only; dedicated weather, generation, interchange, and outage feeds are planned.
+        - The first implementation trains on one selected source at a time; it does not mix regions with incompatible demand scales.
+        - Recursive forecasting can accumulate error over longer horizons.
+        - Local TF-IDF RAG is intentionally lightweight and does not replace an enterprise vector database.
+        - LLM text is advisory and may be incorrect; the deterministic expert trace remains visible.
+        - Token counters reflect responses observed by GridGuard, not authoritative provider billing balances.
+        - Recommendations require human approval and the software does not control critical infrastructure.
+        """
+    )

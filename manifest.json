@@ -1,0 +1,81 @@
+{
+  "name": "GridGuard AI",
+  "version": "0.3.0",
+  "stage": "MVP-3 three-source decision intelligence",
+  "stack": [
+    "Streamlit",
+    "Flask",
+    "XGBoost",
+    "SQLAlchemy",
+    "PostgreSQL",
+    "Local TF-IDF RAG"
+  ],
+  "data_sources": [
+    "synthetic",
+    "kaggle_historical",
+    "eia_live"
+  ],
+  "decision_providers": [
+    "internal_expert_system",
+    "grok",
+    "groq",
+    "gemini"
+  ],
+  "default_mode": {
+    "data": "synthetic",
+    "decision_provider": "internal_expert_system",
+    "persistence": "json"
+  },
+  "validation": {
+    "automated_tests_passed": 24,
+    "streamlit_tabs": 6,
+    "source_compilation": "passed"
+  },
+  "files": [
+    ".env.example",
+    ".gitignore",
+    "CHANGELOG.md",
+    "Dockerfile",
+    "LICENSE",
+    "README.md",
+    "VALIDATION.md",
+    "artifacts/.gitkeep",
+    "backend/__init__.py",
+    "backend/api.py",
+    "backend/config.py",
+    "backend/data.py",
+    "backend/decision_intelligence.py",
+    "backend/expert_system.py",
+    "backend/features.py",
+    "backend/llm_providers.py",
+    "backend/memory.py",
+    "backend/modeling.py",
+    "backend/persistence.py",
+    "backend/rag.py",
+    "backend/risk.py",
+    "backend/service.py",
+    "backend/token_meter.py",
+    "data/kaggle/README.md",
+    "data/runtime/.gitkeep",
+    "docs/images/.gitkeep",
+    "docs/rag/demand_response_policy.md",
+    "docs/rag/grid_operations_playbook.md",
+    "docs/rag/model_governance.md",
+    "manifest.json",
+    "pyproject.toml",
+    "railway.toml",
+    "requirements.txt",
+    "run.py",
+    "streamlit_app.py",
+    "tests/conftest.py",
+    "tests/test_api_intelligence.py",
+    "tests/test_data_and_features.py",
+    "tests/test_decision_intelligence.py",
+    "tests/test_kaggle_data.py",
+    "tests/test_llm_providers.py",
+    "tests/test_memory_rag_tokens.py",
+    "tests/test_model_and_risk.py",
+    "tests/test_persistence.py",
+    "tests/test_service.py"
+  ]
+}
