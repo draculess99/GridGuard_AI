@@ -389,7 +389,7 @@ with tab_control:
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=bundle.history["timestamp"].tail(168), y=bundle.history["demand_mw"].tail(168), name="Recent actual", mode="lines"))
     fig.add_trace(go.Scatter(x=forecast["timestamp"], y=forecast["forecast_mw"], name="XGBoost forecast", mode="lines+markers"))
-    fig.add_hline(y=float(capacity_mw), line_dash="dash", annotation_text="Available capacity")
+    fig.add_hline(y=float(capacity_mw), line_dash="dash", line_color="#fbbf24", annotation_text="Available capacity")
     fig.update_layout(
         title="Recent demand and forward forecast",
         xaxis_title="Timestamp",
@@ -580,7 +580,7 @@ with tab_scenario:
     m4.metric("Reserve margin", f"{srisk['reserve_margin_pct']:.1f}%")
 
     scenario_fig = go.Figure(go.Scatter(x=sf["timestamp"], y=sf["forecast_mw"], mode="lines+markers", name="Scenario forecast"))
-    scenario_fig.add_hline(y=srisk["effective_capacity_mw"], line_dash="dash", annotation_text="Effective capacity")
+    scenario_fig.add_hline(y=srisk["effective_capacity_mw"], line_dash="dash", line_color="#fbbf24", annotation_text="Effective capacity")
     scenario_fig.update_layout(height=400, yaxis_title="Demand (MW)", title="Scenario forecast")
     st.plotly_chart(scenario_fig, width="stretch")
     st.info(srisk["recommendation"])
