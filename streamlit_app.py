@@ -454,9 +454,7 @@ with tab_intelligence:
         height=110,
     )
     
-    use_debate = False
-    if decision_provider in ["groq", "gemini"]:
-        use_debate = st.checkbox("Enable Multi-Agent Debate Committee", help="Convene a panel of agents to debate the forecast and policies.")
+    use_debate = decision_provider in ["groq", "gemini"]
 
     generate_clicked = st.button("Generate X-Decision briefing", type="primary")
     if generate_clicked:
