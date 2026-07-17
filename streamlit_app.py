@@ -111,8 +111,8 @@ rag = resource_rag()
 
 provider_labels = {
     "internal_expert_system": "Internal Expert System (no tokens)",
-    "groq": "Groq GROQ",
-    "gemini": "Gemini API",
+    "groq": "GROQ",
+    "gemini": "Gemini",
 }
 provider_options = list(provider_labels)
 
