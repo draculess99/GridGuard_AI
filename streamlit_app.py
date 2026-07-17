@@ -517,13 +517,31 @@ with tab_intelligence:
 
 with tab_scenario:
     st.write("Stress the forecast without retraining the model.")
+    
+    presets = {
+        "Custom": None,
+        "Summer Heatwave": {"temperature_delta": 15.0, "outage_mw": 0.0, "demand_shock_pct": 5.0},
+        "Winter Freeze": {"temperature_delta": -15.0, "outage_mw": 0.0, "demand_shock_pct": 5.0},
+        "Major Plant Trip": {"temperature_delta": 0.0, "outage_mw": 2500.0, "demand_shock_pct": 0.0},
+        "Extreme Grid Stress": {"temperature_delta": 10.0, "outage_mw": 3000.0, "demand_shock_pct": 8.0},
+    }
+    
+    selected_preset = st.selectbox("Quick Presets", list(presets.keys()))
+    if selected_preset != st.session_state.get("last_preset"):
+        st.session_state.last_preset = selected_preset
+        if presets[selected_preset] is not None:
+            st.session_state.scenario = presets[selected_preset].copy()
+        else:
+            st.session_state.scenario = {"temperature_delta": 0.0, "outage_mw": 0.0, "demand_shock_pct": 0.0}
+        st.rerun()
+
     sc1, sc2, sc3 = st.columns(3)
     with sc1:
-        temperature_delta = st.slider("Temperature change (°F)", -15.0, 20.0, float(st.session_state.scenario["temperature_delta"]), 1.0)
+        temperature_delta = st.slider("Temperature change (°F)", -15.0, 20.0, float(st.session_state.scenario["temperature_delta"]), 1.0, key="slider_temp")
     with sc2:
-        outage_mw = st.slider("Generation outage (MW)", 0.0, 6000.0, float(st.session_state.scenario["outage_mw"]), 250.0)
+        outage_mw = st.slider("Generation outage (MW)", 0.0, 6000.0, float(st.session_state.scenario["outage_mw"]), 250.0, key="slider_outage")
     with sc3:
-        demand_shock_pct = st.slider("Unexpected demand shock (%)", -10.0, 20.0, float(st.session_state.scenario["demand_shock_pct"]), 1.0)
+        demand_shock_pct = st.slider("Unexpected demand shock (%)", -10.0, 20.0, float(st.session_state.scenario["demand_shock_pct"]), 1.0, key="slider_shock")
 
     if st.button("Run scenario", type="primary"):
         scenario = {"temperature_delta": temperature_delta, "outage_mw": outage_mw, "demand_shock_pct": demand_shock_pct}
