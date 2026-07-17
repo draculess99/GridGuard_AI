@@ -566,8 +566,9 @@ with tab_model:
 
     imp = bundle.feature_importance.head(15).sort_values("importance")
     imp_fig = go.Figure(go.Bar(x=imp["importance"], y=imp["feature"], orientation="h"))
-    imp_fig.update_layout(title="XGBoost feature importance", height=480, xaxis_title="Gain/importance")
+    imp_fig.update_layout(title="XGBoost feature importance (via SHAP)", height=480, xaxis_title="Mean Absolute SHAP Value")
     st.plotly_chart(imp_fig, width="stretch")
+    st.caption("Feature importance is extracted using SHAP (SHapley Additive exPlanations) values to show true predictive impact.")
 
     comparison = bundle.test_predictions.copy()
     compare_fig = go.Figure()
