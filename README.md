@@ -1,6 +1,6 @@
 # GridGuard AI
 
-**Three-source electric-grid forecasting, explainable X-Decision intelligence, local RAG, and human-approved demand-response support**
+**Explainable Grid Forecasting and Human-Governed Decision Intelligence**
 
 [![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B)](#streamlit-interface)
 [![Flask](https://img.shields.io/badge/API-Flask-000000)](#flask-api)
@@ -985,6 +985,13 @@ Multiple replicas + shared cache/queue + centralized observability
 - Reset buttons do not restore provider quota or credits.
 - No recommendation is executed automatically.
 - Human review is mandatory.
+
+---
+
+## ⚠️ Disclaimer & Trademark Notice
+
+**This is an open-source, educational capstone project and technical portfolio piece.** 
+It is **not** a commercial product, is **not** intended for commercial use, and is **not affiliated with, endorsed by, or connected to** any commercial entity, company, or trademark that may operate under the name "GridGuard" or similar names in the energy, cybersecurity, or software sectors.
 
 ---
 
