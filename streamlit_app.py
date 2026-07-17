@@ -246,6 +246,18 @@ with st.sidebar:
     train_clicked = st.button("Train / refresh forecast", type="primary", width="stretch")
 
     st.divider()
+    
+    snapshot = meter.snapshot()["providers"]
+    groq_tokens = snapshot["groq"]["total_tokens"]
+    gemini_tokens = snapshot["gemini"]["total_tokens"]
+    col_tk1, col_tk2 = st.columns([3, 1])
+    with col_tk1:
+        st.caption(f"**Tokens:** Groq ({groq_tokens:,}) | Gemini ({gemini_tokens:,})")
+    with col_tk2:
+        if st.button("Reset", key="reset_all_tokens"):
+            meter.reset()
+            st.rerun()
+            
     st.subheader("Decision intelligence")
     default_provider = os.getenv("GRIDGUARD_DECISION_PROVIDER", "internal_expert_system").strip().lower()
     provider_index = provider_options.index(default_provider) if default_provider in provider_options else 0
