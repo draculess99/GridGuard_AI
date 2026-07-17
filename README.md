@@ -430,6 +430,13 @@ If the user selects an LLM provider (Groq or Gemini) and enables the **Multi-Age
 
 > **Note on inference engines:** The Internal Expert System does *not* have access to the Debate Committee. If the Internal Expert System is selected, the platform relies on a completely different deterministic inference engine that uses hard-coded boolean logic and zero LLM tokens. The Debate Committee only exists when utilizing the Groq or Gemini LLM inference engines.
 
+### Safety & Guardrails (Human-in-the-loop)
+
+Because GridGuard AI operates in a high-stakes physical infrastructure environment, strict guardrails are structurally enforced:
+- **Human-In-The-Loop (HITL):** No recommendation is executed automatically. The system acts strictly as an advisory decision-intelligence platform, requiring an operator to review the evidence and explicitly approve or reject actions.
+- **Deterministic Risk Math:** The core risk evaluation (capacity margins, demand shocks) does not rely on hallucination-prone LLMs. It uses deterministic Python logic.
+- **Local RAG Policy Grounding:** When the LLM is used to summarize the briefing, it isn't allowed to just improvise. The system uses Local RAG (Retrieval-Augmented Generation) to inject actual, hard-coded grid policies and regulatory text into the prompt. The LLM is forced to base its reasoning strictly on these approved governance documents.
+
 ---
 
 ## Decision-provider switch
