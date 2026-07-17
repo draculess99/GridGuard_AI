@@ -170,7 +170,7 @@ sequenceDiagram
 
 # Three-source data architecture
 
-The data-source dropdown is displayed prominently in the Streamlit sidebar. A dedicated **Data Sources** tab shows all three inbound sources, identifies the active source, reports whether each source is ready, and displays the active source's quality profile.
+The data-source dropdown is displayed prominently in the Streamlit sidebar. A dedicated **Data Sources** tab shows all three inbound sources, identifies the active source, reports whether each source is ready, and displays the active source's quality profile. It also allows operators to export both the historical training data and the generated forward forecast directly as CSV files for offline analysis.
 
 ```text
 Synthetic generator ─┐
