@@ -243,18 +243,18 @@ with st.sidebar:
     capacity_mw = st.number_input(
         "Available capacity (MW)", min_value=1000.0, value=27000.0, step=500.0
     )
-    train_clicked = st.button("Train / refresh forecast", type="primary", width="stretch")
+    train_clicked = st.button("Train / refresh forecast", type="primary", use_container_width=True)
 
     st.divider()
     
     snapshot = meter.snapshot()["providers"]
     groq_tokens = snapshot["groq"]["total_tokens"]
     gemini_tokens = snapshot["gemini"]["total_tokens"]
-    col_tk1, col_tk2 = st.columns([3, 1])
+    col_tk1, col_tk2 = st.columns([5, 3])
     with col_tk1:
         st.caption(f"**Tokens:** Groq ({groq_tokens:,}) | Gemini ({gemini_tokens:,})")
     with col_tk2:
-        if st.button("Reset", key="reset_all_tokens"):
+        if st.button("🔄 Reset", key="reset_all_tokens", use_container_width=True):
             meter.reset()
             st.rerun()
             
