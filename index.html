@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GridGuard AI is an explainable electric-grid forecasting and decision-support platform with XGBoost, local RAG, selectable decision engines, a multi-agent debate committee, and human approval.">
+  <meta name="description"
+    content="GridGuard AI is an explainable electric-grid forecasting and decision-support platform with XGBoost, local RAG, selectable decision engines, a multi-agent debate committee, and human approval.">
   <title>GridGuard AI | Explainable Grid Decision Intelligence</title>
   <style>
     :root {
@@ -21,9 +23,15 @@
       --radius: 16px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       background-color: var(--bg);
@@ -42,8 +50,16 @@
       padding: 0 24px;
     }
 
-    h1, h2, h3 { line-height: 1.2; letter-spacing: -0.02em; }
-    strong { color: var(--text); }
+    h1,
+    h2,
+    h3 {
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    strong {
+      color: var(--text);
+    }
 
     /* Hero Section — original visual language retained */
     .hero {
@@ -51,6 +67,7 @@
       text-align: center;
       animation: fadeInDown 1s ease-out;
     }
+
     .hero h1 {
       font-size: clamp(3rem, 5vw, 4.5rem);
       font-weight: 800;
@@ -60,12 +77,14 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+
     .hero p {
       font-size: 1.25rem;
       color: var(--text-muted);
       max-width: 860px;
       margin: 0 auto;
     }
+
     .hero-kicker {
       display: inline-flex;
       align-items: center;
@@ -90,6 +109,7 @@
       gap: 16px;
       animation: fadeInDown 1s ease-out 0.2s backwards;
     }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -101,21 +121,25 @@
       text-decoration: none;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .btn-primary {
       background: var(--primary);
       color: #000;
       box-shadow: 0 4px 14px var(--primary-glow);
     }
+
     .btn-primary:hover {
       background: #7dd3fc;
       transform: translateY(-2px);
       box-shadow: 0 6px 20px var(--primary-glow);
     }
+
     .btn-outline {
       border: 1px solid rgba(56, 189, 248, 0.5);
       color: var(--primary);
       background: rgba(56, 189, 248, 0.05);
     }
+
     .btn-outline:hover {
       background: rgba(56, 189, 248, 0.15);
       border-color: var(--primary);
@@ -123,10 +147,27 @@
     }
 
     /* Section Styling */
-    .section { padding: 60px 0; }
-    .section-header { text-align: center; margin-bottom: 48px; }
-    .section-header h2 { font-size: clamp(2rem, 4vw, 2.5rem); margin-bottom: 16px; font-weight: 700; }
-    .section-header p { color: var(--text-muted); max-width: 760px; margin: 0 auto; font-size: 1.1rem; }
+    .section {
+      padding: 60px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      max-width: 760px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+    }
 
     /* About Section */
     .about-grid {
@@ -139,10 +180,19 @@
       border-radius: var(--radius);
       padding: 40px;
       margin-bottom: 40px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
-    .about-text h3 { font-size: 1.8rem; margin-bottom: 16px; color: var(--primary); }
-    .about-text p { margin-bottom: 16px; color: var(--text-muted); }
+
+    .about-text h3 {
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: var(--primary);
+    }
+
+    .about-text p {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+    }
 
     /* Original card grid */
     .arch-grid {
@@ -150,6 +200,7 @@
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 24px;
     }
+
     .card {
       background: rgba(17, 24, 39, 0.7);
       border: 1px solid var(--border);
@@ -160,6 +211,7 @@
       position: relative;
       overflow: hidden;
     }
+
     .card::before {
       content: '';
       position: absolute;
@@ -171,12 +223,17 @@
       opacity: 0;
       transition: opacity 0.4s;
     }
+
     .card:hover {
       transform: translateY(-6px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px var(--primary-glow);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--primary-glow);
       border-color: rgba(56, 189, 248, 0.3);
     }
-    .card:hover::before { opacity: 1; }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
     .card-icon {
       width: 48px;
       height: 48px;
@@ -190,8 +247,16 @@
       margin-bottom: 24px;
       box-shadow: inset 0 0 12px rgba(56, 189, 248, 0.2);
     }
-    .card h3 { font-size: 1.3rem; margin-bottom: 12px; }
-    .card p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
 
     /* Added content follows the same style */
     .metric-strip {
@@ -200,6 +265,7 @@
       gap: 12px;
       margin-top: 24px;
     }
+
     .metric-tile {
       background: rgba(17, 24, 39, 0.58);
       border: 1px solid var(--border);
@@ -207,6 +273,7 @@
       padding: 18px 12px;
       text-align: center;
     }
+
     .metric-tile strong {
       display: block;
       color: var(--primary);
@@ -214,7 +281,11 @@
       line-height: 1.1;
       margin-bottom: 7px;
     }
-    .metric-tile span { color: var(--text-muted); font-size: 0.78rem; }
+
+    .metric-tile span {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
 
     .feature-list {
       list-style: none;
@@ -222,12 +293,14 @@
       display: grid;
       gap: 10px;
     }
+
     .feature-list li {
       color: var(--text-muted);
       padding-left: 24px;
       position: relative;
       font-size: 0.95rem;
     }
+
     .feature-list li::before {
       content: '✓';
       position: absolute;
@@ -237,12 +310,25 @@
     }
 
     .highlight-card {
-      background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.05));
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(129, 140, 248, 0.05));
     }
-    .provider-card { min-height: 100%; }
-    .provider-card.internal { border-top: 2px solid var(--success); }
-    .provider-card.groq { border-top: 2px solid var(--primary); }
-    .provider-card.gemini { border-top: 2px solid var(--secondary); }
+
+    .provider-card {
+      min-height: 100%;
+    }
+
+    .provider-card.internal {
+      border-top: 2px solid var(--success);
+    }
+
+    .provider-card.groq {
+      border-top: 2px solid var(--primary);
+    }
+
+    .provider-card.gemini {
+      border-top: 2px solid var(--secondary);
+    }
+
     .provider-label {
       display: inline-block;
       margin-bottom: 14px;
@@ -256,6 +342,7 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
+
     .mode-note {
       margin-top: 24px;
       padding: 18px 20px;
@@ -264,36 +351,47 @@
       border-radius: 0 12px 12px 0;
       color: var(--text-muted);
     }
-    .mode-note strong { color: #fde68a; }
+
+    .mode-note strong {
+      color: #fde68a;
+    }
 
     /* Diagram Sections */
-    .diagram-stack { display: grid; gap: 28px; }
+    .diagram-stack {
+      display: grid;
+      gap: 28px;
+    }
+
     .diagram-card {
       background: #0d1117;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 34px 20px;
-      box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
       overflow-x: auto;
     }
+
     .diagram-card h3 {
       text-align: center;
       color: var(--primary);
       font-size: 1.25rem;
       margin-bottom: 8px;
     }
-    .diagram-card > p {
+
+    .diagram-card>p {
       text-align: center;
       color: var(--text-muted);
       font-size: 0.92rem;
       max-width: 760px;
       margin: 0 auto 24px;
     }
+
     .mermaid {
       min-width: 720px;
       display: flex;
       justify-content: center;
     }
+
     .diagram-note {
       color: var(--text-muted);
       margin-top: 20px !important;
@@ -308,12 +406,38 @@
       overflow-x: auto;
       background: rgba(17, 24, 39, 0.62);
     }
-    table { width: 100%; border-collapse: collapse; min-width: 700px; }
-    th, td { padding: 17px 20px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--text); background: rgba(56, 189, 248, 0.06); font-size: 0.9rem; }
-    td { color: var(--text-muted); font-size: 0.92rem; }
-    tr:last-child td { border-bottom: 0; }
-    td:last-child { color: #dbeafe; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    th,
+    td {
+      padding: 17px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--text);
+      background: rgba(56, 189, 248, 0.06);
+      font-size: 0.9rem;
+    }
+
+    td {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td:last-child {
+      color: #dbeafe;
+    }
 
     .metric {
       color: var(--primary);
@@ -321,6 +445,7 @@
       font-weight: 800;
       margin-bottom: 8px;
     }
+
     .tag-row {
       display: flex;
       flex-wrap: wrap;
@@ -328,6 +453,7 @@
       gap: 10px;
       margin-top: 24px;
     }
+
     .tag {
       border: 1px solid var(--border);
       background: rgba(17, 24, 39, 0.65);
@@ -348,9 +474,19 @@
       gap: 18px;
       align-items: start;
     }
-    .safety-callout .card-icon { margin: 0; }
-    .safety-callout h3 { margin-bottom: 8px; }
-    .safety-callout p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .safety-callout .card-icon {
+      margin: 0;
+    }
+
+    .safety-callout h3 {
+      margin-bottom: 8px;
+    }
+
+    .safety-callout p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
 
     .footer {
       padding: 30px 0 48px;
@@ -363,13 +499,29 @@
 
     /* Animations */
     @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
     }
+
     .floating-img {
       font-size: 8rem;
       text-align: center;
@@ -378,21 +530,54 @@
     }
 
     @media (max-width: 1000px) {
-      .metric-strip { grid-template-columns: repeat(3, 1fr); }
+      .metric-strip {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
+
     @media (max-width: 768px) {
-      .hero { padding-top: 72px; }
-      .about-grid { grid-template-columns: 1fr; padding: 28px; }
-      .floating-img { font-size: 6rem; }
-      .section { padding: 44px 0; }
-      .metric-strip { grid-template-columns: repeat(2, 1fr); }
-      .card { padding: 26px; }
-      .mermaid { min-width: 650px; }
+      .hero {
+        padding-top: 72px;
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+        padding: 28px;
+      }
+
+      .floating-img {
+        font-size: 6rem;
+      }
+
+      .section {
+        padding: 44px 0;
+      }
+
+      .metric-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .card {
+        padding: 26px;
+      }
+
+      .mermaid {
+        min-width: 650px;
+      }
     }
+
     @media (max-width: 480px) {
-      .container { padding: 0 16px; }
-      .metric-strip { grid-template-columns: 1fr 1fr; }
-      .safety-callout { grid-template-columns: 1fr; }
+      .container {
+        padding: 0 16px;
+      }
+
+      .metric-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .safety-callout {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 
@@ -426,6 +611,7 @@
     });
   </script>
 </head>
+
 <body>
 
   <header class="hero container">
@@ -434,10 +620,14 @@
     <p>Explainable Grid Forecasting and Human-Governed Decision Intelligence</p>
     <div class="hero-buttons">
       <a href="https://github.com/draculess99/GridGuard_AI" target="_blank" class="btn btn-outline">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+        </svg>
         View Code
       </a>
-      <a href="https://gridguard-production.up.railway.app/" target="_blank" class="btn btn-primary">
+      <a href="https://workforceagenticall-production.up.railway.app/" target="_blank"
+        class="btn btn-primary">
         Launch Railway App →
       </a>
     </div>
@@ -450,9 +640,15 @@
       <div class="about-grid">
         <div class="about-text">
           <h3>Why do we need GridGuard?</h3>
-          <p>Modern electric grids face volatile demand, temperature extremes, generation outages, and rapidly changing reserve conditions. Operators must interpret multiple signals and make high-stakes decisions quickly.</p>
-          <p>Traditional forecasting tools provide a number but often fail to explain the operational consequence. Fully autonomous AI can create the opposite problem: recommendations that are difficult to inspect, govern, or safely challenge.</p>
-          <p><strong>GridGuard AI bridges that gap.</strong> It combines XGBoost forecasting, a seasonal-naive benchmark, SHAP explanations, deterministic risk rules, local policy retrieval, selectable LLM reasoning, and an optional three-agent debate committee. Every recommendation remains advisory until a human operator approves, rejects, or escalates it.</p>
+          <p>Modern electric grids face volatile demand, temperature extremes, generation outages, and rapidly changing
+            reserve conditions. Operators must interpret multiple signals and make high-stakes decisions quickly.</p>
+          <p>Traditional forecasting tools provide a number but often fail to explain the operational consequence. Fully
+            autonomous AI can create the opposite problem: recommendations that are difficult to inspect, govern, or
+            safely challenge.</p>
+          <p><strong>GridGuard AI bridges that gap.</strong> It combines XGBoost forecasting, a seasonal-naive
+            benchmark, SHAP explanations, deterministic risk rules, local policy retrieval, selectable LLM reasoning,
+            and an optional three-agent debate committee. Every recommendation remains advisory until a human operator
+            approves, rejects, or escalates it.</p>
         </div>
         <div class="floating-img" aria-hidden="true">⚡</div>
       </div>
@@ -471,39 +667,48 @@
     <section class="section">
       <div class="section-header">
         <h2>System Architecture Breakdown</h2>
-        <p>The shared pipeline prepares the evidence once, then routes it through the decision method selected by the operator.</p>
+        <p>The shared pipeline prepares the evidence once, then routes it through the decision method selected by the
+          operator.</p>
       </div>
 
       <div class="arch-grid">
         <div class="card">
           <div class="card-icon">🗄️</div>
           <h3>1. Data Ingestion & Normalization</h3>
-          <p>Ingests reproducible synthetic data, historical Kaggle CSV/ZIP files, or recent EIA balancing-authority demand. Source adapters normalize timestamps, detect missing hours, apply the selected quality policy, and output one canonical hourly schema.</p>
+          <p>Ingests reproducible synthetic data, historical Kaggle CSV/ZIP files, or recent EIA balancing-authority
+            demand. Source adapters normalize timestamps, detect missing hours, apply the selected quality policy, and
+            output one canonical hourly schema.</p>
         </div>
         <div class="card">
           <div class="card-icon">📈</div>
           <h3>2. XGBoost Forecasting & Benchmarking</h3>
-          <p>Builds lag, rolling, calendar, and temperature features for a recursive 12–48 hour demand forecast. A chronological holdout compares XGBoost against a seasonal-naive weekly-lag baseline.</p>
+          <p>Builds lag, rolling, calendar, and temperature features for a recursive 12–48 hour demand forecast. A
+            chronological holdout compares XGBoost against a seasonal-naive weekly-lag baseline.</p>
         </div>
         <div class="card">
           <div class="card-icon">🔎</div>
           <h3>3. Explainability & Risk Evidence</h3>
-          <p>SHAP identifies the drivers behind the forecast. The risk engine then evaluates peak load, available capacity, reserve margin, high-risk hours, generation outages, and demand shocks.</p>
+          <p>SHAP identifies the drivers behind the forecast. The risk engine then evaluates peak load, available
+            capacity, reserve margin, high-risk hours, generation outages, and demand shocks.</p>
         </div>
         <div class="card">
           <div class="card-icon">🧠</div>
           <h3>4. X-Decision Orchestration</h3>
-          <p>X-Decision means explainable decision intelligence. It assembles forecast facts, fired expert rules, model-quality evidence, scenario assumptions, local RAG policy chunks, and recent bounded decision memory.</p>
+          <p>X-Decision means explainable decision intelligence. It assembles forecast facts, fired expert rules,
+            model-quality evidence, scenario assumptions, local RAG policy chunks, and recent bounded decision memory.
+          </p>
         </div>
         <div class="card">
           <div class="card-icon">🤝</div>
           <h3>5. Selectable Reasoning Path</h3>
-          <p>The operator selects the Internal Expert System, Groq, or Gemini. Groq and Gemini can produce a single grounded briefing or convene the optional Multi-Agent Debate Committee.</p>
+          <p>The operator selects the Internal Expert System, Groq, or Gemini. Groq and Gemini can produce a single
+            grounded briefing or convene the optional Multi-Agent Debate Committee.</p>
         </div>
         <div class="card">
           <div class="card-icon">🛡️</div>
           <h3>6. Human Control, Audit & Operations</h3>
-          <p>The Streamlit Control Tower requires an operator decision and rationale. Records persist to JSON or PostgreSQL, while Flask/Waitress endpoints expose health, readiness, audit, memory, and token status.</p>
+          <p>The Streamlit Control Tower requires an operator decision and rationale. Records persist to JSON or
+            PostgreSQL, while Flask/Waitress endpoints expose health, readiness, audit, memory, and token status.</p>
         </div>
       </div>
     </section>
@@ -512,142 +717,149 @@
     <section class="section" id="architecture">
       <div class="section-header">
         <h2>End-to-End Architecture</h2>
-        <p>One governed data and forecasting pipeline supplies evidence to several decision paths without giving any AI component direct control authority.</p>
+        <p>One governed data and forecasting pipeline supplies evidence to several decision paths without giving any AI
+          component direct control authority.</p>
       </div>
 
       <div class="diagram-stack">
         <div class="diagram-card">
           <h3>1. Shared Forecasting and Governance Pipeline</h3>
-          <p>Every decision engine receives the same normalized data, forecast, benchmark, scenario, risk, and policy evidence.</p>
+          <p>Every decision engine receives the same normalized data, forecast, benchmark, scenario, risk, and policy
+            evidence.</p>
           <div class="mermaid">
-flowchart LR
-    subgraph DATA[Data Sources]
-      SYN[Synthetic Demo]
-      KAG[Kaggle CSV or ZIP]
-      EIA[EIA Hourly Demand]
-    end
+            flowchart LR
+            subgraph DATA[Data Sources]
+            SYN[Synthetic Demo]
+            KAG[Kaggle CSV or ZIP]
+            EIA[EIA Hourly Demand]
+            end
 
-    subgraph PIPE[Data and Forecast Pipeline]
-      ADAPT[Source Adapter]
-      QUALITY[Validation and Quality Profile]
-      SCHEMA[Canonical Hourly Schema]
-      FE[Feature Engineering]
-      XGB[XGBoost 12 to 48 Hour Forecast]
-      BASE[Seasonal-Naive Benchmark]
-      SHAP[SHAP Feature Importance]
-      RISK[Peak, Capacity and Reserve Risk]
-      SCEN[Scenario Lab]
-    end
+            subgraph PIPE[Data and Forecast Pipeline]
+            ADAPT[Source Adapter]
+            QUALITY[Validation and Quality Profile]
+            SCHEMA[Canonical Hourly Schema]
+            FE[Feature Engineering]
+            XGB[XGBoost 12 to 48 Hour Forecast]
+            BASE[Seasonal-Naive Benchmark]
+            SHAP[SHAP Feature Importance]
+            RISK[Peak, Capacity and Reserve Risk]
+            SCEN[Scenario Lab]
+            end
 
-    subgraph EVIDENCE[Decision Evidence]
-      RULES[Deterministic Fired-Rule Trace]
-      RAG[Local TF-IDF Policy RAG]
-      MEMORY[Bounded JSON Decision Memory]
-      XDEC[X-Decision Orchestrator]
-    end
+            subgraph EVIDENCE[Decision Evidence]
+            RULES[Deterministic Fired-Rule Trace]
+            RAG[Local TF-IDF Policy RAG]
+            MEMORY[Bounded JSON Decision Memory]
+            XDEC[X-Decision Orchestrator]
+            end
 
-    SYN --> ADAPT
-    KAG --> ADAPT
-    EIA --> ADAPT
-    ADAPT --> QUALITY --> SCHEMA --> FE --> XGB
-    XGB --> BASE
-    XGB --> SHAP
-    XGB --> RISK
-    SCEN --> RISK
-    RISK --> RULES
-    RULES --> XDEC
-    SHAP --> XDEC
-    BASE --> XDEC
-    RAG --> XDEC
-    MEMORY --> XDEC
+            SYN --> ADAPT
+            KAG --> ADAPT
+            EIA --> ADAPT
+            ADAPT --> QUALITY --> SCHEMA --> FE --> XGB
+            XGB --> BASE
+            XGB --> SHAP
+            XGB --> RISK
+            SCEN --> RISK
+            RISK --> RULES
+            RULES --> XDEC
+            SHAP --> XDEC
+            BASE --> XDEC
+            RAG --> XDEC
+            MEMORY --> XDEC
 
-    classDef source fill:#111827,stroke:#38bdf8,color:#f9fafb;
-    classDef forecast fill:#111827,stroke:#818cf8,color:#f9fafb;
-    classDef evidence fill:#111827,stroke:#fbbf24,color:#f9fafb;
-    class SYN,KAG,EIA,ADAPT,QUALITY,SCHEMA source;
-    class FE,XGB,BASE,SHAP,RISK,SCEN forecast;
-    class RULES,RAG,MEMORY,XDEC evidence;
+            classDef source fill:#111827,stroke:#38bdf8,color:#f9fafb;
+            classDef forecast fill:#111827,stroke:#818cf8,color:#f9fafb;
+            classDef evidence fill:#111827,stroke:#fbbf24,color:#f9fafb;
+            class SYN,KAG,EIA,ADAPT,QUALITY,SCHEMA source;
+            class FE,XGB,BASE,SHAP,RISK,SCEN forecast;
+            class RULES,RAG,MEMORY,XDEC evidence;
           </div>
-          <p class="diagram-note">The numerical forecast and the decision explanation remain separate, making each stage easier to test, audit, and replace.</p>
+          <p class="diagram-note">The numerical forecast and the decision explanation remain separate, making each stage
+            easier to test, audit, and replace.</p>
         </div>
 
         <div class="diagram-card">
           <h3>2. Three Decision Engines and Two Reasoning Styles</h3>
-          <p>The debate committee is an optional orchestration mode for Groq or Gemini; it is not a fourth provider and is never used by the internal deterministic engine.</p>
+          <p>The debate committee is an optional orchestration mode for Groq or Gemini; it is not a fourth provider and
+            is never used by the internal deterministic engine.</p>
           <div class="mermaid">
-flowchart TB
-    EVIDENCE[X-Decision Evidence Package] --> SELECT{Operator Selects Decision Engine}
+            flowchart TB
+            EVIDENCE[X-Decision Evidence Package] --> SELECT{Operator Selects Decision Engine}
 
-    SELECT --> INTERNAL[Internal Expert System]
-    SELECT --> GROQ[Groq]
-    SELECT --> GEMINI[Gemini]
+            SELECT --> INTERNAL[Internal Expert System]
+            SELECT --> GROQ[Groq]
+            SELECT --> GEMINI[Gemini]
 
-    INTERNAL --> DET[Deterministic Rules and Template Briefing]
-    DET --> ZERO[Zero API Tokens]
+            INTERNAL --> DET[Deterministic Rules and Template Briefing]
+            DET --> ZERO[Zero API Tokens]
 
-    GROQ --> GCHOICE{Debate Committee Enabled?}
-    GEMINI --> MCHOICE{Debate Committee Enabled?}
+            GROQ --> GCHOICE{Debate Committee Enabled?}
+            GEMINI --> MCHOICE{Debate Committee Enabled?}
 
-    GCHOICE -->|No| GSINGLE[Single-Shot Groq Briefing]
-    MCHOICE -->|No| MSINGLE[Single-Shot Gemini Briefing]
-    GCHOICE -->|Yes| COMMITTEE[Three-Agent Debate Committee]
-    MCHOICE -->|Yes| COMMITTEE
+            GCHOICE -->|No| GSINGLE[Single-Shot Groq Briefing]
+            MCHOICE -->|No| MSINGLE[Single-Shot Gemini Briefing]
+            GCHOICE -->|Yes| COMMITTEE[Three-Agent Debate Committee]
+            MCHOICE -->|Yes| COMMITTEE
 
-    ZERO --> BRIEF[Grounded Operator Briefing]
-    GSINGLE --> BRIEF
-    MSINGLE --> BRIEF
-    COMMITTEE --> BRIEF
+            ZERO --> BRIEF[Grounded Operator Briefing]
+            GSINGLE --> BRIEF
+            MSINGLE --> BRIEF
+            COMMITTEE --> BRIEF
 
-    BRIEF --> HITL{Human Review}
-    HITL -->|Approve| APPROVE[Record Approved Decision]
-    HITL -->|Reject| REJECT[Record Rejected Decision]
-    HITL -->|Escalate or Verify| ESCALATE[Additional Human Review]
-    APPROVE --> AUDIT[(JSON or PostgreSQL Audit)]
-    REJECT --> AUDIT
-    ESCALATE --> AUDIT
+            BRIEF --> HITL{Human Review}
+            HITL -->|Approve| APPROVE[Record Approved Decision]
+            HITL -->|Reject| REJECT[Record Rejected Decision]
+            HITL -->|Escalate or Verify| ESCALATE[Additional Human Review]
+            APPROVE --> AUDIT[(JSON or PostgreSQL Audit)]
+            REJECT --> AUDIT
+            ESCALATE --> AUDIT
 
-    classDef internal fill:#111827,stroke:#34d399,color:#f9fafb;
-    classDef llm fill:#111827,stroke:#38bdf8,color:#f9fafb;
-    classDef committee fill:#111827,stroke:#818cf8,color:#f9fafb;
-    classDef human fill:#111827,stroke:#fbbf24,color:#f9fafb;
-    class INTERNAL,DET,ZERO internal;
-    class GROQ,GEMINI,GCHOICE,MCHOICE,GSINGLE,MSINGLE llm;
-    class COMMITTEE committee;
-    class BRIEF,HITL,APPROVE,REJECT,ESCALATE,AUDIT human;
+            classDef internal fill:#111827,stroke:#34d399,color:#f9fafb;
+            classDef llm fill:#111827,stroke:#38bdf8,color:#f9fafb;
+            classDef committee fill:#111827,stroke:#818cf8,color:#f9fafb;
+            classDef human fill:#111827,stroke:#fbbf24,color:#f9fafb;
+            class INTERNAL,DET,ZERO internal;
+            class GROQ,GEMINI,GCHOICE,MCHOICE,GSINGLE,MSINGLE llm;
+            class COMMITTEE committee;
+            class BRIEF,HITL,APPROVE,REJECT,ESCALATE,AUDIT human;
           </div>
-          <p class="diagram-note">Provider failures never remove the internal expert system. LLM output remains advisory and cannot execute grid actions.</p>
+          <p class="diagram-note">Provider failures never remove the internal expert system. LLM output remains advisory
+            and cannot execute grid actions.</p>
         </div>
 
         <div class="diagram-card">
           <h3>3. Multi-Agent Debate Committee</h3>
-          <p>When enabled for Groq or Gemini, the committee divides the reasoning task into quantitative analysis, policy compliance, and final dispatch synthesis.</p>
+          <p>When enabled for Groq or Gemini, the committee divides the reasoning task into quantitative analysis,
+            policy compliance, and final dispatch synthesis.</p>
           <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant X as X-Decision Orchestrator
-    participant A as Quantitative Analyst
-    participant C as Compliance Officer
-    participant D as Chief Dispatcher
-    participant O as Human Operator
-    participant S as Audit Store
+            sequenceDiagram
+            autonumber
+            participant X as X-Decision Orchestrator
+            participant A as Quantitative Analyst
+            participant C as Compliance Officer
+            participant D as Chief Dispatcher
+            participant O as Human Operator
+            participant S as Audit Store
 
-    X->>A: Forecast, risk, capacity, scenario and model evidence
-    A-->>X: Statistical assessment of peak and reserve risk
-    X->>C: Evidence, analyst assessment and retrieved policy chunks
-    C-->>X: Regulatory checks, required procedures and safety constraints
-    X->>D: Full evidence plus analyst and compliance positions
-    D-->>X: Situation, evidence and recommended action
-    X-->>O: Final briefing plus complete committee transcript
-    O->>O: Verify assumptions and operational context
-    alt Operator approves
-      O->>S: Approved decision and rationale
-    else Operator rejects
-      O->>S: Rejected decision and rationale
-    else Operator escalates
-      O->>S: Escalation and additional review note
-    end
+            X->>A: Forecast, risk, capacity, scenario and model evidence
+            A-->>X: Statistical assessment of peak and reserve risk
+            X->>C: Evidence, analyst assessment and retrieved policy chunks
+            C-->>X: Regulatory checks, required procedures and safety constraints
+            X->>D: Full evidence plus analyst and compliance positions
+            D-->>X: Situation, evidence and recommended action
+            X-->>O: Final briefing plus complete committee transcript
+            O->>O: Verify assumptions and operational context
+            alt Operator approves
+            O->>S: Approved decision and rationale
+            else Operator rejects
+            O->>S: Rejected decision and rationale
+            else Operator escalates
+            O->>S: Escalation and additional review note
+            end
           </div>
-          <p class="diagram-note">The transcript is displayed in the dedicated Committee Transcript tab, preserving visibility into each agent's contribution.</p>
+          <p class="diagram-note">The transcript is displayed in the dedicated Committee Transcript tab, preserving
+            visibility into each agent's contribution.</p>
         </div>
       </div>
     </section>
@@ -656,7 +868,8 @@ sequenceDiagram
     <section class="section">
       <div class="section-header">
         <h2>Three Decision-System Options</h2>
-        <p>The forecasting evidence stays constant; the selected engine changes how that evidence is interpreted and communicated.</p>
+        <p>The forecasting evidence stays constant; the selected engine changes how that evidence is interpreted and
+          communicated.</p>
       </div>
 
       <div class="arch-grid">
@@ -664,7 +877,8 @@ sequenceDiagram
           <span class="provider-label">Option 1 · Deterministic</span>
           <div class="card-icon">⚙️</div>
           <h3>Internal Expert System</h3>
-          <p>A transparent zero-token path that applies hard-coded boolean rules and produces a structured X-Decision briefing without an external model.</p>
+          <p>A transparent zero-token path that applies hard-coded boolean rules and produces a structured X-Decision
+            briefing without an external model.</p>
           <ul class="feature-list">
             <li>No API key or hosted LLM required</li>
             <li>Every fired rule and evidence item is visible</li>
@@ -677,7 +891,8 @@ sequenceDiagram
           <span class="provider-label">Option 2 · Hosted LLM</span>
           <div class="card-icon">🚀</div>
           <h3>Groq Reasoning</h3>
-          <p>Produces a fast grounded operator briefing from forecast facts, expert rules, local RAG context, and bounded conversation memory.</p>
+          <p>Produces a fast grounded operator briefing from forecast facts, expert rules, local RAG context, and
+            bounded conversation memory.</p>
           <ul class="feature-list">
             <li>Selectable hosted Groq model</li>
             <li>Single-shot grounded briefing mode</li>
@@ -690,7 +905,8 @@ sequenceDiagram
           <span class="provider-label">Option 3 · Hosted LLM</span>
           <div class="card-icon">✨</div>
           <h3>Gemini Reasoning</h3>
-          <p>Generates a policy-grounded briefing from the same governed evidence package and can participate in the committee workflow.</p>
+          <p>Generates a policy-grounded briefing from the same governed evidence package and can participate in the
+            committee workflow.</p>
           <ul class="feature-list">
             <li>Selectable Gemini model</li>
             <li>Single-shot grounded briefing mode</li>
@@ -701,7 +917,9 @@ sequenceDiagram
       </div>
 
       <div class="mode-note">
-        <strong>Important architecture distinction:</strong> the Debate Committee is a toggle available only when Groq or Gemini is selected. The Internal Expert System uses a completely separate deterministic inference path and consumes zero LLM tokens.
+        <strong>Important architecture distinction:</strong> the Debate Committee is a toggle available only when Groq
+        or Gemini is selected. The Internal Expert System uses a completely separate deterministic inference path and
+        consumes zero LLM tokens.
       </div>
     </section>
 
@@ -709,13 +927,15 @@ sequenceDiagram
     <section class="section">
       <div class="section-header">
         <h2>Operational Capabilities</h2>
-        <p>GridGuard is designed as an explainable decision-support control tower rather than an autonomous grid controller.</p>
+        <p>GridGuard is designed as an explainable decision-support control tower rather than an autonomous grid
+          controller.</p>
       </div>
       <div class="arch-grid">
         <div class="card highlight-card">
           <div class="card-icon">🌡️</div>
           <h3>Scenario Lab</h3>
-          <p>Stress-tests the forecast under weather, demand, capacity, and generation assumptions before a recommendation is made.</p>
+          <p>Stress-tests the forecast under weather, demand, capacity, and generation assumptions before a
+            recommendation is made.</p>
           <ul class="feature-list">
             <li>Temperature adjustments</li>
             <li>Demand-shock simulation</li>
@@ -726,7 +946,8 @@ sequenceDiagram
         <div class="card highlight-card">
           <div class="card-icon">🚨</div>
           <h3>Peak & Reserve-Risk Detection</h3>
-          <p>Converts raw forecast values into operating signals by assessing effective capacity, reserve pressure, and the number of high-risk hours.</p>
+          <p>Converts raw forecast values into operating signals by assessing effective capacity, reserve pressure, and
+            the number of high-risk hours.</p>
           <ul class="feature-list">
             <li>Peak demand and peak timestamp</li>
             <li>Reserve-margin evidence</li>
@@ -737,7 +958,8 @@ sequenceDiagram
         <div class="card highlight-card">
           <div class="card-icon">📚</div>
           <h3>Local RAG & Decision Memory</h3>
-          <p>Retrieves relevant local Markdown or text policy chunks and combines them with bounded JSON-backed conversation history.</p>
+          <p>Retrieves relevant local Markdown or text policy chunks and combines them with bounded JSON-backed
+            conversation history.</p>
           <ul class="feature-list">
             <li>TF-IDF and cosine-similarity retrieval</li>
             <li>Visible source and chunk identifiers</li>
@@ -748,7 +970,8 @@ sequenceDiagram
         <div class="card highlight-card">
           <div class="card-icon">📊</div>
           <h3>Model Governance</h3>
-          <p>Measures whether the trained XGBoost model actually improves upon a straightforward time-series baseline.</p>
+          <p>Measures whether the trained XGBoost model actually improves upon a straightforward time-series baseline.
+          </p>
           <ul class="feature-list">
             <li>Chronological holdout evaluation</li>
             <li>MAE and RMSE reporting</li>
@@ -759,7 +982,8 @@ sequenceDiagram
         <div class="card highlight-card">
           <div class="card-icon">👤</div>
           <h3>Human Approval Workflow</h3>
-          <p>No recommendation becomes a recorded operational decision until a human reviews the evidence and enters a rationale.</p>
+          <p>No recommendation becomes a recorded operational decision until a human reviews the evidence and enters a
+            rationale.</p>
           <ul class="feature-list">
             <li>Approve, reject, or escalate</li>
             <li>Operator notes and rationale</li>
@@ -770,7 +994,8 @@ sequenceDiagram
         <div class="card highlight-card">
           <div class="card-icon">🩺</div>
           <h3>Audit & System Operations</h3>
-          <p>Separates application health, decision records, memory, RAG status, and token usage into inspectable operational surfaces.</p>
+          <p>Separates application health, decision records, memory, RAG status, and token usage into inspectable
+            operational surfaces.</p>
           <ul class="feature-list">
             <li>JSON or PostgreSQL persistence</li>
             <li>Flask/Waitress health and readiness API</li>
@@ -785,7 +1010,8 @@ sequenceDiagram
     <section class="section">
       <div class="section-header">
         <h2>What Makes GridGuard Different?</h2>
-        <p>The project goes beyond a forecasting notebook by connecting predictive evidence to governed, explainable, and reviewable operational decisions.</p>
+        <p>The project goes beyond a forecasting notebook by connecting predictive evidence to governed, explainable,
+          and reviewable operational decisions.</p>
       </div>
       <div class="table-wrap">
         <table>
@@ -836,23 +1062,27 @@ sequenceDiagram
     <section class="section">
       <div class="section-header">
         <h2>What This Project Demonstrates</h2>
-        <p>A production-minded AI portfolio project spanning time-series forecasting, data engineering, model governance, RAG, multi-agent orchestration, APIs, persistence, and human-centered decision support.</p>
+        <p>A production-minded AI portfolio project spanning time-series forecasting, data engineering, model
+          governance, RAG, multi-agent orchestration, APIs, persistence, and human-centered decision support.</p>
       </div>
       <div class="arch-grid">
         <div class="card">
           <div class="metric">3 Sources</div>
           <h3>Adaptable Data Architecture</h3>
-          <p>Switches between synthetic, historical Kaggle, and recent EIA data while preserving the same downstream feature, forecasting, and decision workflow.</p>
+          <p>Switches between synthetic, historical Kaggle, and recent EIA data while preserving the same downstream
+            feature, forecasting, and decision workflow.</p>
         </div>
         <div class="card">
           <div class="metric">3 + 3</div>
           <h3>Engines and Agents</h3>
-          <p>Offers three selectable decision engines and, when enabled for a hosted provider, a transparent three-role debate committee with a visible transcript.</p>
+          <p>Offers three selectable decision engines and, when enabled for a hosted provider, a transparent three-role
+            debate committee with a visible transcript.</p>
         </div>
         <div class="card">
           <div class="metric">100%</div>
           <h3>Human-Controlled Decisions</h3>
-          <p>Recommendations never execute automatically. Approval, rejection, escalation, rationale, evidence, model version, and source provenance are retained for audit.</p>
+          <p>Recommendations never execute automatically. Approval, rejection, escalation, rationale, evidence, model
+            version, and source provenance are retained for audit.</p>
         </div>
       </div>
 
@@ -860,7 +1090,9 @@ sequenceDiagram
         <div class="card-icon">🔐</div>
         <div>
           <h3>Responsible-AI Boundary</h3>
-          <p>GridGuard is an operational analytics demonstration. It does not autonomously control generation, transmission, customer load, or other critical infrastructure. Forecasts, LLM briefings, and agent debate are decision-support evidence for qualified human review.</p>
+          <p>GridGuard is an operational analytics demonstration. It does not autonomously control generation,
+            transmission, customer load, or other critical infrastructure. Forecasts, LLM briefings, and agent debate
+            are decision-support evidence for qualified human review.</p>
         </div>
       </div>
 
@@ -888,8 +1120,12 @@ sequenceDiagram
   <footer class="footer container">
     GridGuard AI — Explainable Grid Forecasting and Human-Governed Decision Intelligence.
     <br><br>
-    <strong>⚠️ Disclaimer & Trademark Notice:</strong> This is an open-source, educational capstone project and technical portfolio piece. It is not a commercial product, is not intended for commercial use, and is not affiliated with, endorsed by, or connected to any commercial entity, company, or trademark that may operate under the name "GridGuard" or similar names in the energy, cybersecurity, or software sectors.
+    <strong>⚠️ Disclaimer & Trademark Notice:</strong> This is an open-source, educational capstone project and
+    technical portfolio piece. It is not a commercial product, is not intended for commercial use, and is not affiliated
+    with, endorsed by, or connected to any commercial entity, company, or trademark that may operate under the name
+    "GridGuard" or similar names in the energy, cybersecurity, or software sectors.
   </footer>
 
 </body>
+
 </html>
