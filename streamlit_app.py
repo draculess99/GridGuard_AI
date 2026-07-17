@@ -744,6 +744,25 @@ EIA hourly API ─────┘""",
 
     st.subheader("Latest normalized observations")
     st.dataframe(bundle.history.tail(100), width="stretch", hide_index=True)
+    
+    st.subheader("Export Data")
+    csv_col1, csv_col2 = st.columns(2)
+    with csv_col1:
+        st.download_button(
+            label="📥 Download Historical Data (CSV)",
+            data=bundle.history.to_csv(index=False).encode('utf-8'),
+            file_name=f"gridguard_history_{data_mode}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    with csv_col2:
+        st.download_button(
+            label="📥 Download Forecast Data (CSV)",
+            data=forecast.to_csv(index=False).encode('utf-8'),
+            file_name=f"gridguard_forecast_{data_mode}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
 
     with st.expander("How to use each source", expanded=True):
         st.markdown(
