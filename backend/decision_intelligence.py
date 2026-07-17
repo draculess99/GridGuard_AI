@@ -105,20 +105,20 @@ def run_decision_intelligence(
         total_comp = 0
 
         # Agent 1: Analyst
-        analyst_system = "You are the Quantitative Analyst Agent. Focus strictly on the statistical risk, capacity limits, and forecast confidence. Keep it very concise (3-4 sentences). Do not make final operational decisions."
+        analyst_system = "You are a Quantitative Analyst for a power grid. Focus strictly on the statistical risk, capacity limits, and forecast confidence. Speak directly and professionally with zero conversational filler. Never use phrases like 'Based on the data' or 'As an AI'. Keep it very concise (3-4 sentences). Do not make final operational decisions."
         resp1 = generate(analyst_prov, analyst_model, [{"role": "system", "content": analyst_system}, {"role": "user", "content": facts}], meter, max_completion_tokens)
         transcript.append({"role": "Quantitative Analyst", "provider": analyst_prov.upper(), "content": resp1.text})
         total_prompt += resp1.prompt_tokens; total_comp += resp1.completion_tokens
 
         # Agent 2: Compliance
-        compliance_system = "You are the Regulatory Compliance Agent. Review the Analyst's assessment and the retrieved policy context. Point out any regulatory violations or required procedures. Keep it very concise (3-4 sentences)."
+        compliance_system = "You are a Regulatory Compliance Officer for a power grid. Review the Analyst's assessment and the retrieved policy context. Point out any regulatory violations or required procedures. Speak directly and professionally with zero conversational filler. Never use phrases like 'Based on the data' or 'As an AI'. Keep it very concise (3-4 sentences)."
         comp_prompt = facts + f"\n\nAnalyst Assessment:\n{resp1.text}"
         resp2 = generate(compliance_prov, compliance_model, [{"role": "system", "content": compliance_system}, {"role": "user", "content": comp_prompt}], meter, max_completion_tokens)
         transcript.append({"role": "Compliance Officer", "provider": compliance_prov.upper(), "content": resp2.text})
         total_prompt += resp2.prompt_tokens; total_comp += resp2.completion_tokens
 
         # Agent 3: Chief Dispatcher
-        chief_system = "You are the Chief Dispatcher. Synthesize the Analyst's data and the Compliance Officer's rules into a final, human-readable operational briefing and recommendation. Follow the format: Situation, Evidence, Recommended Action."
+        chief_system = "You are the Chief Dispatcher for a power grid. Synthesize the Analyst's data and the Compliance Officer's rules into a final operational briefing. Speak authoritatively and directly to the human operator. Never use conversational filler, greetings, or phrases like 'Here is the briefing' or 'As an AI'. Follow the exact format without deviation: Situation, Evidence, Recommended Action."
         chief_prompt = facts + f"\n\nAnalyst Assessment:\n{resp1.text}\n\nCompliance Officer Assessment:\n{resp2.text}"
         resp3 = generate(chief_prov, chief_model, [{"role": "system", "content": chief_system}, {"role": "user", "content": chief_prompt}], meter, max_completion_tokens)
         transcript.append({"role": "Chief Dispatcher", "provider": chief_prov.upper(), "content": resp3.text})
