@@ -520,10 +520,10 @@ with tab_scenario:
     
     presets = {
         "Custom": None,
-        "Summer Heatwave": {"temperature_delta": 15.0, "outage_mw": 0.0, "demand_shock_pct": 5.0},
-        "Winter Freeze": {"temperature_delta": -15.0, "outage_mw": 0.0, "demand_shock_pct": 5.0},
-        "Major Plant Trip": {"temperature_delta": 0.0, "outage_mw": 2500.0, "demand_shock_pct": 0.0},
-        "Extreme Grid Stress": {"temperature_delta": 10.0, "outage_mw": 3000.0, "demand_shock_pct": 8.0},
+        "Summer Heatwave": {"temperature_delta": 20.0, "outage_mw": 1500.0, "demand_shock_pct": 8.0},
+        "Winter Freeze": {"temperature_delta": -20.0, "outage_mw": 1500.0, "demand_shock_pct": 10.0},
+        "Major Plant Trip": {"temperature_delta": 0.0, "outage_mw": 4500.0, "demand_shock_pct": 0.0},
+        "Extreme Grid Stress": {"temperature_delta": 15.0, "outage_mw": 6000.0, "demand_shock_pct": 15.0},
     }
     
     selected_preset = st.selectbox("Quick Presets", list(presets.keys()))
