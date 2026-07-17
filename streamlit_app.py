@@ -477,6 +477,7 @@ with tab_intelligence:
                     max_completion_tokens=max_completion_tokens,
                 )
                 st.session_state.last_decision_intelligence = result
+            st.rerun()
         except ProviderError as exc:
             st.error(str(exc))
         except Exception as exc:
