@@ -32,6 +32,20 @@ The numerical forecast and decision explanation are intentionally separated:
 
 ---
 
+## Screenshots
+
+*(Place your actual screenshot images into the `docs/images/` folder and they will appear here)*
+
+| Control Tower & Forecast | Multi-Agent Debate Committee |
+|:---:|:---:|
+| ![Control Tower](docs/images/01_control_tower.png)<br><sub>The main X-Decision dashboard with XGBoost forecast, risk signals, and the local RAG policy context.</sub> | ![Debate Committee](docs/images/02_debate_committee.png)<br><sub>The transcript tab showing the Analyst, Compliance, and Dispatcher agents reasoning over the evidence.</sub> |
+
+| Scenario Lab Stress Testing | Architecture & Data Sources |
+|:---:|:---:|
+| ![Scenario Lab](docs/images/03_scenario_lab.png)<br><sub>Modifying temperature inputs and simulating unexpected demand shocks to stress-test the forecast.</sub> | ![Data Sources](docs/images/04_data_sources.png)<br><sub>Configuring Synthetic, Kaggle Historical, or EIA Live API data ingestion.</sub> |
+
+---
+
 ## Feature summary
 
 | Area | Feature | Status |
