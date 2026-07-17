@@ -111,9 +111,8 @@ rag = resource_rag()
 
 provider_labels = {
     "internal_expert_system": "Internal Expert System (no tokens)",
-    "groq": "GroqCloud",
+    "groq": "Groq GROQ",
     "gemini": "Gemini API",
-    "debate_committee": "Multi-Agent Debate Committee",
 }
 provider_options = list(provider_labels)
 
@@ -454,13 +453,19 @@ with tab_intelligence:
         value="Explain the current grid risk, the rules that fired, the recommended action, and what the human operator must verify.",
         height=110,
     )
+    
+    use_debate = False
+    if decision_provider in ["groq", "gemini"]:
+        use_debate = st.checkbox("Enable Multi-Agent Debate Committee", help="Convene a panel of agents to debate the forecast and policies.")
+
     generate_clicked = st.button("Generate X-Decision briefing", type="primary")
     if generate_clicked:
         try:
-            spinner_text = "The AI Debate Committee is currently in session..." if decision_provider == "debate_committee" else f"Running {provider_labels[decision_provider]} with local RAG..."
+            active_provider = "debate_committee" if use_debate else decision_provider
+            spinner_text = "The AI Debate Committee is currently in session..." if use_debate else f"Running {provider_labels[decision_provider]} with local RAG..."
             with st.spinner(spinner_text):
                 result = run_decision_intelligence(
-                    provider=decision_provider,
+                    provider=active_provider,
                     model=selected_model,
                     risk=risk,
                     model_metrics=bundle.metrics,
