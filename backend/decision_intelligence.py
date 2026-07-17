@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.expert_system import build_expert_decision, render_expert_brief
-from backend.llm_providers import ProviderResponse, generate
+from backend.llm_providers import ProviderResponse, generate, configured
 from backend.memory import JsonMemoryStore
 from backend.rag import LocalRagIndex
 from backend.token_meter import TokenMeter
@@ -82,6 +82,61 @@ def run_decision_intelligence(
             "expert": expert,
             "rag_sources": sources,
             "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        }
+
+    if normalized == "debate_committee":
+        available = [p for p in ["grok", "groq", "gemini"] if configured(p)]
+        if not available:
+            raise ValueError("Debate Committee requires at least one configured LLM provider.")
+        
+        analyst_prov = "groq" if "groq" in available else available[0]
+        compliance_prov = "gemini" if "gemini" in available else available[0]
+        chief_prov = "grok" if "grok" in available else available[-1]
+        
+        import os
+        analyst_model = os.getenv("GRIDGUARD_GROQ_MODEL", "openai/gpt-oss-120b") if analyst_prov == "groq" else model
+        compliance_model = os.getenv("GRIDGUARD_GEMINI_MODEL", "gemini-2.5-flash") if compliance_prov == "gemini" else model
+        chief_model = os.getenv("GRIDGUARD_GROK_MODEL", "grok-4.5") if chief_prov == "grok" else model
+
+        transcript = []
+        total_prompt = 0
+        total_comp = 0
+
+        # Agent 1: Analyst
+        analyst_system = "You are the Quantitative Analyst Agent. Focus strictly on the statistical risk, capacity limits, and forecast confidence. Keep it very concise (3-4 sentences). Do not make final operational decisions."
+        resp1 = generate(analyst_prov, analyst_model, [{"role": "system", "content": analyst_system}, {"role": "user", "content": facts}], meter, max_completion_tokens)
+        transcript.append({"role": "Quantitative Analyst", "provider": analyst_prov.upper(), "content": resp1.text})
+        total_prompt += resp1.prompt_tokens; total_comp += resp1.completion_tokens
+
+        # Agent 2: Compliance
+        compliance_system = "You are the Regulatory Compliance Agent. Review the Analyst's assessment and the retrieved policy context. Point out any regulatory violations or required procedures. Keep it very concise (3-4 sentences)."
+        comp_prompt = facts + f"\n\nAnalyst Assessment:\n{resp1.text}"
+        resp2 = generate(compliance_prov, compliance_model, [{"role": "system", "content": compliance_system}, {"role": "user", "content": comp_prompt}], meter, max_completion_tokens)
+        transcript.append({"role": "Compliance Officer", "provider": compliance_prov.upper(), "content": resp2.text})
+        total_prompt += resp2.prompt_tokens; total_comp += resp2.completion_tokens
+
+        # Agent 3: Chief Dispatcher
+        chief_system = "You are the Chief Dispatcher. Synthesize the Analyst's data and the Compliance Officer's rules into a final, human-readable operational briefing and recommendation. Follow the format: Situation, Evidence, Recommended Action."
+        chief_prompt = facts + f"\n\nAnalyst Assessment:\n{resp1.text}\n\nCompliance Officer Assessment:\n{resp2.text}"
+        resp3 = generate(chief_prov, chief_model, [{"role": "system", "content": chief_system}, {"role": "user", "content": chief_prompt}], meter, max_completion_tokens)
+        transcript.append({"role": "Chief Dispatcher", "provider": chief_prov.upper(), "content": resp3.text})
+        total_prompt += resp3.prompt_tokens; total_comp += resp3.completion_tokens
+
+        final_text = f"### Debate Committee Final Decision\n\n{resp3.text}"
+        memory.append("assistant", final_text, {"provider": "debate_committee", "rag_sources": sources, "tokens": total_prompt + total_comp})
+        
+        return {
+            "provider": "debate_committee",
+            "model": chief_model,
+            "text": final_text,
+            "expert": expert,
+            "rag_sources": sources,
+            "committee_transcript": transcript,
+            "usage": {
+                "prompt_tokens": total_prompt,
+                "completion_tokens": total_comp,
+                "total_tokens": total_prompt + total_comp,
+            },
         }
 
     messages: list[dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]

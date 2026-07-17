@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridGuard AI | Explainable Grid Decision Intelligence</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --bg-panel: #111827;
+      --border: #1f2937;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.4);
+      --secondary: #818cf8;
+      --danger: #f87171;
+      --success: #34d399;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.7;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.06), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.06), transparent 25%);
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Typography & Core */
+    h1, h2, h3 { line-height: 1.2; letter-spacing: -0.02em; }
+    
+    /* Hero Section */
+    .hero {
+      padding: 100px 0 40px;
+      text-align: center;
+      animation: fadeInDown 1s ease-out;
+    }
+    .hero h1 {
+      font-size: clamp(3rem, 5vw, 4.5rem);
+      font-weight: 800;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Section Styling */
+    .section { padding: 60px 0; }
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-header h2 { font-size: 2.5rem; margin-bottom: 16px; font-weight: 700; }
+    .section-header p { color: var(--text-muted); max-width: 700px; margin: 0 auto; font-size: 1.1rem; }
+
+    /* About Section */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .about-text h3 { font-size: 1.8rem; margin-bottom: 16px; color: var(--primary); }
+    .about-text p { margin-bottom: 16px; color: var(--text-muted); }
+    
+    /* Architecture Grid */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: rgba(17, 24, 39, 0.7);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px var(--primary-glow);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .card:hover::before { opacity: 1; }
+    .card-icon {
+      width: 48px; height: 48px; background: rgba(56, 189, 248, 0.1);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: var(--primary); margin-bottom: 24px;
+      box-shadow: inset 0 0 12px rgba(56, 189, 248, 0.2);
+    }
+    .card h3 { font-size: 1.3rem; margin-bottom: 12px; }
+    .card p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Diagram Section */
+    .diagram-container {
+      background: #0d1117; /* Darker bg for mermaid contrast */
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      margin-top: 20px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .floating-img {
+      font-size: 8rem;
+      text-align: center;
+      animation: float 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.3));
+    }
+
+    @media (max-width: 768px) {
+      .about-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <!-- Load Mermaid.js for the architecture diagram -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        background: '#0d1117',
+        primaryColor: '#111827',
+        primaryTextColor: '#f9fafb',
+        primaryBorderColor: '#38bdf8',
+        lineColor: '#818cf8',
+        secondaryColor: '#1f2937',
+        tertiaryColor: '#030712'
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <header class="hero container">
+    <h1>GridGuard AI</h1>
+    <p>Explainable decision intelligence for modern electric grids. Forecast load, identify peak risks, and keep a human operator firmly in control.</p>
+  </header>
+
+  <main class="container">
+    
+    <!-- About Section -->
+    <section class="section">
+      <div class="about-grid">
+        <div class="about-text">
+          <h3>Why do we need GridGuard?</h3>
+          <p>Modern electric grids are under unprecedented stress. Extreme weather events, fluctuating temperatures, and unpredictable demand shocks require operators to make high-stakes decisions rapidly.</p>
+          <p>Traditional forecasting models provide numbers, but lack context. Fully autonomous AI systems act like "black boxes," making decisions that operators can't audit or trust.</p>
+          <p><strong>GridGuard AI solves this</strong> by combining powerful XGBoost machine learning with a transparent "Expert System." It provides operators with a crystal-clear forecast, evaluates risks using hard-coded governance rules, surfaces relevant grid policies via Local RAG, and ultimately requires human approval for any action.</p>
+        </div>
+        <div class="floating-img">⚡</div>
+      </div>
+    </section>
+
+    <!-- Architecture Breakdown -->
+    <section class="section">
+      <div class="section-header">
+        <h2>System Architecture Breakdown</h2>
+        <p>A look at the underlying data pipelines, forecasting models, and decision intelligence.</p>
+      </div>
+      
+      <div class="arch-grid">
+        <div class="card">
+          <div class="card-icon">🗄️</div>
+          <h3>1. Data Ingestion & Normalization</h3>
+          <p>Ingests from Synthetic generators, historical Kaggle CSVs, or live EIA balancing-authority APIs. Normalizes all timestamps and interpolates missing hours into a canonical schema.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <h3>2. XGBoost & SHAP Forecasting</h3>
+          <p>Predicts 12–48 hours of future demand using rolling and autoregressive lag features. Utilizes SHAP values to explain exactly which features (like temperature or time of day) drove the forecast.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚙️</div>
+          <h3>3. Expert Risk Engine</h3>
+          <p>Translates the forecast into operational risk. A deterministic, hard-coded rules engine evaluates capacity pressure and demand shocks, generating a fired-rule trace and an objective confidence score.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>4. X-Decision & Local RAG</h3>
+          <p>Uses TF-IDF to retrieve relevant governance policies (Local RAG). Combines the forecast, risk rules, and retrieved policies into a grounded briefing, with optional LLM (Grok/Groq/Gemini) summarization.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">👤</div>
+          <h3>5. Human-in-the-loop (HITL)</h3>
+          <p>No decision executes autonomously. Operators review the evidence in the Streamlit Control Tower and must explicitly approve or reject the recommendation with an auditable rationale.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3>6. Audit & Persistence</h3>
+          <p>Approved actions and their rationales are stored securely in a local JSON ledger or a remote PostgreSQL database to ensure strict regulatory compliance and historical review.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture Diagram -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Architecture Diagram</h2>
+        <p>The complete end-to-end data and decision pipeline.</p>
+      </div>
+      <div class="diagram-container">
+        <!-- Mermaid diagram definition -->
+        <div class="mermaid">
+          flowchart LR
+              OP[Grid Operator] --> UI[Streamlit Control Tower]
+              API[Flask API] --> OPS[Operational Status]
+
+              SYN[Synthetic Generator] --> ADAPTER[Source Adapter Layer]
+              KAG[Kaggle CSV/ZIP] --> ADAPTER
+              EIA[EIA Hourly API] --> ADAPTER
+
+              ADAPTER --> VALIDATE[Validation & Quality]
+              VALIDATE --> SCHEMA[Canonical Hourly Schema]
+
+              SCHEMA --> XGB[XGBoost Forecaster]
+              XGB --> RISK[Risk Engine]
+              RISK --> XDEC[X-Decision Engine]
+
+              RULES[Deterministic Rules] --> XDEC
+              RAG[Local TF-IDF RAG] --> XDEC
+              PROV[LLM Summarization] --> XDEC
+
+              XDEC --> UI
+              UI --> AUDIT[(Audit Ledger)]
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>

@@ -114,6 +114,7 @@ provider_labels = {
     "grok": "Grok — xAI API",
     "groq": "GroqCloud",
     "gemini": "Gemini API",
+    "debate_committee": "Multi-Agent Debate Committee",
 }
 provider_options = list(provider_labels)
 
@@ -360,8 +361,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-tab_control, tab_intelligence, tab_scenario, tab_model, tab_audit, tab_data = st.tabs(
-    ["Control Tower", "X-Decision & RAG", "Scenario Lab", "Model Quality", "Audit & Operations", "Data Sources"]
+tab_control, tab_intelligence, tab_scenario, tab_model, tab_audit, tab_committee, tab_data = st.tabs(
+    ["Control Tower", "X-Decision & RAG", "Scenario Lab", "Model Quality", "Audit & Operations", "Committee Transcript", "Data Sources"]
 )
 
 with tab_control:
@@ -458,7 +459,8 @@ with tab_intelligence:
     generate_clicked = st.button("Generate X-Decision briefing", type="primary")
     if generate_clicked:
         try:
-            with st.spinner(f"Running {provider_labels[decision_provider]} with local RAG..."):
+            spinner_text = "The AI Debate Committee is currently in session..." if decision_provider == "debate_committee" else f"Running {provider_labels[decision_provider]} with local RAG..."
+            with st.spinner(spinner_text):
                 result = run_decision_intelligence(
                     provider=decision_provider,
                     model=selected_model,
@@ -634,6 +636,29 @@ Human approval
         st.info("No human decisions have been recorded yet.")
 
     st.caption("Flask endpoints: /health, /ready, /api/status, /api/decisions, /api/data/sources, /api/intelligence/status, /api/tokens")
+
+with tab_committee:
+    st.subheader("Multi-Agent Committee Debate")
+    if 'last_decision_intelligence' in st.session_state and st.session_state.last_decision_intelligence and st.session_state.last_decision_intelligence.get("provider") == "debate_committee":
+        result = st.session_state.last_decision_intelligence
+        st.write("Review the step-by-step decision process as the agents debated the risk and policies.")
+        
+        st.markdown("### Processing Pipeline")
+        cols = st.columns(len(result["committee_transcript"]))
+        for idx, (col, msg) in enumerate(zip(cols, result["committee_transcript"])):
+            with col:
+                st.markdown(f"**Step {idx+1}**")
+                st.info(f"**{msg['role']}**\n\n*(via {msg['provider']})*")
+        
+        st.divider()
+        
+        st.markdown("### Official Transcript")
+        for msg in result["committee_transcript"]:
+            with st.chat_message("assistant", avatar="🤖"):
+                st.markdown(f"**{msg['role']}** _({msg['provider']})_")
+                st.markdown(msg["content"])
+    else:
+        st.info("Run the **Debate Committee** engine from the X-Decision tab to view the multi-agent transcript.")
 
 with tab_data:
     st.subheader("Three-source data ingestion")
