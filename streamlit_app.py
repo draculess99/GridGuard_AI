@@ -596,6 +596,14 @@ with tab_model:
     ))
     corr_fig.update_layout(title="Top Features Correlation Heatmap", height=500)
     st.plotly_chart(corr_fig, width="stretch")
+    
+    st.info("""
+    **How to read the Correlation Heatmap:**
+    - **Deep Blue (+1.0) & Deep Red (-1.0):** Indicate strong positive and negative correlations.
+        - **What is "Good":** You want your predictive features (like lags or temperature) to have strong correlations (deep colors) with the target variable (`demand_mw`). This indicates they possess high predictive power.
+    - **White / Pale Colors (Near 0.0):** Indicate little to no correlation.
+        - **What is "Good":** You want the features to have pale/white correlations *with each other*. If two features are highly correlated with each other (deep colors), it means they are redundant (multicollinearity), which can make the model less stable and harder to interpret.
+    """)
 
 with tab_audit:
     st.subheader("Persistence and service readiness")
