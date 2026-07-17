@@ -322,6 +322,23 @@ Here is a quick example of what live EIA data looks like once it is normalized i
 
 ### Time Series Data & Methodology
 
+```mermaid
+flowchart TD
+    RAW[Raw Demand Signals] --> NORM[Normalization & Imputation]
+    
+    subgraph Feature Engineering
+        NORM --> FEAT[Feature Vector: Lags, Rolling Stats, Time, Weather]
+    end
+    
+    subgraph Recursive Loop
+        FEAT --> XGB[XGBoost Model]
+        XGB --> PRED[Forecast Hour T]
+        PRED -.->|Appended back to History| NORM
+    end
+    
+    PRED --> FINAL[Final 48-Hour Forecast]
+```
+
 **Is the received data a time series?**
 Yes. Whether sourced from the Synthetic Demo, Kaggle Historical uploads, or the EIA Live API, the data GridGuard receives is fundamentally a **time series**. It consists of sequential, equally spaced (hourly) observations of electricity demand (`demand_mw`), timestamps, and exogenous variables like temperature.
 
@@ -348,18 +365,18 @@ GridGuard also calculates a seasonal-naive weekly-lag baseline. XGBoost should o
 
 ### Model features
 
-- `lag_1`
-- `lag_2`
-- `lag_24`
-- `lag_48`
-- `lag_168`
-- `rolling_mean_24`
-- `rolling_std_24`
-- `rolling_mean_168`
-- hour, weekday, month and weekend indicators
-- cyclical hour and weekday encodings
-- temperature and temperature-squared
-- holiday/stress proxy
+The machine learning features are strictly divided into internal and external categories:
+
+**1. Internal (Endogenous) Features**
+Derived entirely from the history of the target variable and the calendar:
+- **Autoregressive Lags:** Exact past demand values (`lag_1`, `lag_2`, `lag_24`, `lag_48`, `lag_168`).
+- **Rolling Statistics:** Smoothed moving averages and volatility (`rolling_mean_24`, `rolling_std_24`, `rolling_mean_168`).
+- **Deterministic Time Encodings:** Raw indicators (`hour`, `dayofweek`, `month`, `is_weekend`) and mathematical cyclical waves (`hour_sin`, `hour_cos`) so the model understands circular time (e.g., hour 24 connects to hour 1).
+
+**2. External (Exogenous) Features**
+Outside forces that independently impact the grid:
+- **Weather:** `temperature_f` and `temperature_f_squared` (capturing the U-shaped heating/cooling demand curve).
+- **Events:** `is_holiday` or stress proxies, which override normal weekly human behavior patterns.
 
 ### Evaluation
 
