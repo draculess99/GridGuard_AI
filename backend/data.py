@@ -65,7 +65,7 @@ def _parse_timestamps(values: pd.Series, timezone_name: str = "UTC") -> pd.Serie
                 ambiguous="infer",
                 nonexistent="shift_forward",
             )
-        except (TypeError, ValueError):
+        except Exception:
             localized = parsed.dt.tz_localize(
                 timezone_name,
                 ambiguous="NaT",

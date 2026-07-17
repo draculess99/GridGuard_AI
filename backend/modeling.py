@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
+import shap
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from xgboost import XGBRegressor
 
@@ -62,8 +63,13 @@ def train_forecaster(history: pd.DataFrame) -> ModelBundle:
         "mae_improvement_pct": float((naive_mae - xgb_mae) / naive_mae * 100) if naive_mae else 0.0,
     }
 
+    explainer = shap.TreeExplainer(model)
+    # We use the test set to evaluate feature impact to keep it fast and representative
+    shap_values = explainer.shap_values(test[FEATURE_COLUMNS])
+    mean_shap_values = np.abs(shap_values).mean(axis=0)
+
     importance = pd.DataFrame(
-        {"feature": FEATURE_COLUMNS, "importance": model.feature_importances_.astype(float)}
+        {"feature": FEATURE_COLUMNS, "importance": mean_shap_values.astype(float)}
     ).sort_values("importance", ascending=False)
 
     comparison = pd.DataFrame(

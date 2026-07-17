@@ -38,7 +38,7 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    .block-container {padding-top: 1.25rem; padding-bottom: 2rem;}
+    .block-container {padding-top: 3rem; padding-bottom: 2rem;}
     .gg-card {
         border: 1px solid rgba(128,128,128,.25);
         border-radius: 14px;
@@ -571,6 +571,26 @@ with tab_model:
     compare_fig.add_trace(go.Scatter(x=comparison["timestamp"], y=comparison["naive_mw"], name="Seasonal naive"))
     compare_fig.update_layout(title="Chronological holdout performance", height=430, yaxis_title="Demand (MW)")
     st.plotly_chart(compare_fig, width="stretch")
+
+    st.subheader("Feature Correlation")
+    from backend.features import build_training_frame
+    full_features = build_training_frame(bundle.history)
+    top_features = bundle.feature_importance["feature"].head(10).tolist()
+    corr_cols = ["demand_mw"] + top_features
+    corr_matrix = full_features[corr_cols].corr().round(2)
+    
+    corr_fig = go.Figure(data=go.Heatmap(
+        z=corr_matrix.values,
+        x=corr_matrix.columns,
+        y=corr_matrix.index,
+        colorscale='RdBu',
+        zmin=-1, zmax=1,
+        text=corr_matrix.values,
+        texttemplate="%{text}",
+        hoverinfo="text"
+    ))
+    corr_fig.update_layout(title="Top Features Correlation Heatmap", height=500)
+    st.plotly_chart(corr_fig, width="stretch")
 
 with tab_audit:
     st.subheader("Persistence and service readiness")

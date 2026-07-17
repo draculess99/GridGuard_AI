@@ -13,3 +13,4 @@ psycopg[binary]>=3.2,<4
 joblib>=1.4,<2
 pytest>=8.3,<9
 tzdata>=2025.2
+shap>=0.40,<1

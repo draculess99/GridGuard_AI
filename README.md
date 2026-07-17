@@ -76,7 +76,7 @@ Streamlit                     Operator interface and dashboards
 Flask + Waitress              Health, readiness and operational API
 pandas / NumPy                Hourly data preparation and adapters
 scikit-learn                  Metrics, TF-IDF RAG and cosine retrieval
-XGBoost                       Demand forecasting
+XGBoost + SHAP                Demand forecasting and feature importance
 Plotly                        Interactive charts
 requests                      EIA, xAI, Groq and Gemini REST calls
 SQLAlchemy + Psycopg 3        Optional PostgreSQL persistence
@@ -206,16 +206,21 @@ The active-source profile also records:
 
 ## 1. Synthetic Demo
 
-No file, credential, or internet connection is required. The generator creates reproducible hourly patterns using:
+No file, credential, or internet connection is required. Instead of returning random numbers, the `generate_synthetic_demand()` function in `backend/data.py` uses a time-series simulation powered by `numpy` and `pandas` to construct a realistic grid dataset:
 
-- daily morning and evening peaks;
-- weekly seasonality;
-- weekday/weekend differences;
-- seasonal and intraday temperature;
-- heating and cooling effects;
-- random operational noise;
-- occasional stress periods;
-- configurable history window and random seed.
+- **Time and Base Patterns:** It generates an hourly timeline using Gaussian (bell-curve) patterns for typical human behavior: a morning peak (8:00 AM), a larger evening peak (6:00 PM), an overnight dip (3:00 AM), and a flat demand reduction on weekends.
+- **Weather Simulation:** It synthesizes a temperature curve using sine waves, combining a yearly seasonal trend (hotter in summer) with a daily cycle (peaking at 2:00 PM), plus random noise.
+- **Temperature-Driven Demand:** It models heating and cooling loads by aggressively increasing demand when the temperature exceeds 72°F (cooling), and moderately increasing demand when it drops below 45°F (heating).
+- **Stress Events & Noise:** It calculates a slow, gradual growth trend over time and randomly injects "stress events" (sudden surges in power demand lasting 8 to 30 hours) to simulate extreme grid conditions.
+- **Final Assembly:** These elements are summed together with a baseline demand (~14,500 MW) and background noise. It enforces a minimum limit of 7,000 MW, formats it into the standard GridGuard dataset schema, and tags it as `ISNE-SYNTHETIC`.
+
+Here is a quick example of what the generated data looks like:
+
+| timestamp | demand_mw | temperature_f | region | is_holiday | source | data_quality_status |
+|---|---|---|---|---|---|---|
+| 2026-07-03 07:00:00+00:00 | 15887.45 | 59.60 | ISNE-SYNTHETIC | 0 | synthetic:iso-ne-style | synthetic |
+| 2026-07-03 08:00:00+00:00 | 15307.68 | 56.40 | ISNE-SYNTHETIC | 0 | synthetic:iso-ne-style | synthetic |
+| 2026-07-03 09:00:00+00:00 | 16099.05 | 60.58 | ISNE-SYNTHETIC | 0 | synthetic:iso-ne-style | synthetic |
 
 Synthetic mode is intended for:
 
@@ -271,6 +276,14 @@ GridGuard does not redistribute a Kaggle dataset. Download the dataset under its
 data/kaggle/hourly_energy_consumption.csv
 ```
 
+Here is a quick example of what Kaggle data looks like once it is converted into the canonical schema (using PJME as an example):
+
+| timestamp | demand_mw | temperature_f | region | is_holiday | source | data_quality_status |
+|---|---|---|---|---|---|---|
+| 2002-01-01 01:00:00+00:00 | 30393.00 | 45.10 | PJME | 0 | kaggle:PJME_hourly.csv:PJME_MW | observed |
+| 2002-01-01 02:00:00+00:00 | 29265.00 | 43.80 | PJME | 0 | kaggle:PJME_hourly.csv:PJME_MW | observed |
+| 2002-01-01 03:00:00+00:00 | 28357.00 | 42.10 | PJME | 0 | kaggle:PJME_hourly.csv:PJME_MW | observed |
+
 Configuration:
 
 ```env
@@ -294,6 +307,14 @@ The connector requests recent hourly balancing-authority demand, validates the r
 A failure is displayed to the operator. GridGuard never silently substitutes synthetic data while claiming that the source is live.
 
 The current EIA connector uses a clearly identified seasonal temperature proxy until a dedicated weather connector is added.
+
+Here is a quick example of what live EIA data looks like once it is normalized into the canonical schema (using ISNE as an example):
+
+| timestamp | demand_mw | temperature_f | region | is_holiday | source | data_quality_status |
+|---|---|---|---|---|---|---|
+| 2026-07-03 07:00:00+00:00 | 14852.00 | 59.60 | ISNE | 0 | eia:ISNE | observed |
+| 2026-07-03 08:00:00+00:00 | 14120.00 | 56.40 | ISNE | 0 | eia:ISNE | observed |
+| 2026-07-03 09:00:00+00:00 | 13850.00 | 60.58 | ISNE | 0 | eia:ISNE | observed |
 
 ---
 
@@ -321,7 +342,7 @@ Instead of using traditional statistical models (like ARIMA) or deep learning re
 
 ### Why XGBoost?
 
-XGBoost is the primary MVP model because hourly grid demand becomes a structured forecasting table after lag, rolling-window, calendar, and temperature features are created. It trains quickly on CPU, works with relatively small or large historical tables, and provides feature importance for operational review.
+XGBoost is the primary MVP model because hourly grid demand becomes a structured forecasting table after lag, rolling-window, calendar, and temperature features are created. It trains quickly on CPU, works with relatively small or large historical tables, and provides SHAP feature importance for operational review.
 
 GridGuard also calculates a seasonal-naive weekly-lag baseline. XGBoost should only be treated as the preferred model when it beats that baseline on the chronological holdout.
 
@@ -348,7 +369,7 @@ The train/test split is chronological rather than random. The Model Quality tab 
 - seasonal-naive MAE and RMSE;
 - MAE percentage improvement;
 - holdout prediction comparison;
-- feature importance;
+- SHAP feature importance (via TreeExplainer);
 - warning when XGBoost fails to beat the baseline.
 
 ---
