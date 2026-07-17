@@ -437,6 +437,16 @@ Because GridGuard AI operates in a high-stakes physical infrastructure environme
 - **Deterministic Risk Math:** The core risk evaluation (capacity margins, demand shocks) does not rely on hallucination-prone LLMs. It uses deterministic Python logic.
 - **Local RAG Policy Grounding:** When the LLM is used to summarize the briefing, it isn't allowed to just improvise. The system uses Local RAG (Retrieval-Augmented Generation) to inject actual, hard-coded grid policies and regulatory text into the prompt. The LLM is forced to base its reasoning strictly on these approved governance documents.
 
+### Scenario Lab (What-If Simulator)
+
+The **Scenario Lab** tab contains a built-in "What-If" simulator that allows operators to stress-test the forecast without retraining the model. Operators can manually override baseline assumptions using sliders, or use the **Quick Presets** dropdown to instantly simulate common grid emergencies:
+- **Summer Heatwave:** Simulates a +15°F temperature spike and 5% demand shock.
+- **Winter Freeze:** Simulates a -15°F temperature drop and 5% demand shock.
+- **Major Plant Trip:** Simulates an unexpected loss of 2,500 MW of generation capacity.
+- **Extreme Grid Stress:** Simulates a worst-case scenario combining extreme temperatures, demand shocks, and capacity outages.
+
+Applying a scenario instantly recalculates the peak demand, effective capacity, and reserve margin, updating the X-Decision recommendation accordingly.
+
 ---
 
 ## Decision-provider switch
