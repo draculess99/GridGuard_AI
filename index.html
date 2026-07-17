@@ -1,484 +1,427 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="GridGuard AI is an explainable grid decision-intelligence platform for load forecasting, risk detection, scenario analysis, and human-governed action." />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GridGuard AI | Explainable Grid Decision Intelligence</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #050914;
-      --bg-soft: #09111f;
-      --panel: rgba(12, 22, 39, 0.78);
-      --panel-strong: #0d1728;
-      --line: rgba(148, 163, 184, 0.16);
-      --line-bright: rgba(56, 189, 248, 0.45);
-      --text: #f8fafc;
-      --muted: #9aa9bc;
-      --cyan: #38bdf8;
-      --blue: #4f7cff;
-      --violet: #8b7cf6;
-      --green: #32d59b;
-      --amber: #fbbf24;
-      --red: #fb7185;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
-      --radius: 22px;
+      --bg: #030712;
+      --bg-panel: #111827;
+      --border: #1f2937;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.4);
+      --secondary: #818cf8;
+      --danger: #f87171;
+      --success: #34d399;
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    
     body {
-      min-height: 100vh;
+      background-color: var(--bg);
       color: var(--text);
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.65;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.7;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.06), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.06), transparent 25%);
       overflow-x: hidden;
-      background:
-        radial-gradient(circle at 12% 12%, rgba(56, 189, 248, 0.11), transparent 28%),
-        radial-gradient(circle at 87% 18%, rgba(139, 124, 246, 0.10), transparent 30%),
-        linear-gradient(180deg, #040813 0%, #070c17 50%, #040813 100%);
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .24;
-      background-image:
-        linear-gradient(rgba(148, 163, 184, .04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, .04) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
     }
 
-    a { color: inherit; text-decoration: none; }
-    button, a { -webkit-tap-highlight-color: transparent; }
-    .container { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
-
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      border-bottom: 1px solid rgba(148, 163, 184, .10);
-      backdrop-filter: blur(18px);
-      background: rgba(5, 9, 20, .72);
+    /* Typography & Core */
+    h1, h2, h3 { line-height: 1.2; letter-spacing: -0.02em; }
+    
+    /* Hero Section */
+    .hero {
+      padding: 100px 0 40px;
+      text-align: center;
+      animation: fadeInDown 1s ease-out;
     }
-    .nav-inner { height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.03em; }
-    .brand-mark {
-      width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
-      background: linear-gradient(135deg, rgba(56,189,248,.24), rgba(79,124,255,.20));
-      border: 1px solid rgba(56,189,248,.35); box-shadow: 0 0 28px rgba(56,189,248,.15);
+    .hero h1 {
+      font-size: clamp(3rem, 5vw, 4.5rem);
+      font-weight: 800;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .nav-links { display: flex; gap: 28px; color: #b8c4d4; font-size: .93rem; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-cta {
-      padding: 10px 15px; border-radius: 11px; color: #06121d; font-weight: 800;
-      background: linear-gradient(135deg, #67d8ff, #5f84ff);
-      box-shadow: 0 10px 30px rgba(56,189,248,.18);
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 800px;
+      margin: 0 auto;
     }
 
-    .hero { padding: 92px 0 74px; position: relative; }
-    .hero-grid { display: grid; grid-template-columns: 1.02fr .98fr; gap: 54px; align-items: center; }
-    .eyebrow {
-      width: fit-content; display: flex; align-items: center; gap: 9px; padding: 8px 12px;
-      border: 1px solid rgba(56, 189, 248, .24); border-radius: 999px;
-      background: rgba(56, 189, 248, .07); color: #aee8ff; font-size: .8rem;
-      font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    /* Section Styling */
+    .section { padding: 60px 0; }
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-header h2 { font-size: 2.5rem; margin-bottom: 16px; font-weight: 700; }
+    .section-header p { color: var(--text-muted); max-width: 700px; margin: 0 auto; font-size: 1.1rem; }
+
+    /* About Section */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
-    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(50,213,155,.5); animation: pulse 2s infinite; }
-    h1 { font-size: clamp(3.2rem, 6.7vw, 6.3rem); line-height: .98; letter-spacing: -.075em; margin: 24px 0; }
-    .gradient-text { background: linear-gradient(100deg, #ffffff 8%, #b6e8ff 47%, #9b91ff 100%); -webkit-background-clip: text; color: transparent; }
-    .hero-copy { max-width: 660px; color: #a8b5c7; font-size: clamp(1.06rem, 1.7vw, 1.22rem); }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 34px; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; padding: 0 18px; border-radius: 13px; font-weight: 800; transition: .25s ease; border: 1px solid transparent; }
-    .btn-primary { color: #07131f; background: linear-gradient(135deg, #70ddff, #6486ff); box-shadow: 0 16px 36px rgba(56,189,248,.18); }
-    .btn-secondary { color: #d8e4f2; background: rgba(255,255,255,.035); border-color: rgba(148,163,184,.18); }
-    .btn:hover { transform: translateY(-2px); }
-    .hero-proof { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 34px; color: #8292a8; font-size: .88rem; }
-    .hero-proof span { display: inline-flex; align-items: center; gap: 8px; }
-    .check { color: var(--green); font-weight: 900; }
-
-    .control-tower {
-      position: relative; padding: 18px; border-radius: 28px; overflow: hidden;
-      border: 1px solid rgba(148,163,184,.18); background: linear-gradient(180deg, rgba(15,26,45,.92), rgba(7,14,26,.94));
-      box-shadow: var(--shadow), 0 0 70px rgba(56,189,248,.08);
+    .about-text h3 { font-size: 1.8rem; margin-bottom: 16px; color: var(--primary); }
+    .about-text p { margin-bottom: 16px; color: var(--text-muted); }
+    
+    /* Architecture Grid */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
     }
-    .control-tower::before { content:""; position:absolute; inset:-1px; border-radius:28px; padding:1px; background:linear-gradient(135deg, rgba(56,189,248,.55), transparent 34%, rgba(139,124,246,.32)); -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; pointer-events:none; }
-    .tower-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: #9fb0c4; font-size: .78rem; }
-    .window-dots { display:flex; gap:6px; }
-    .window-dots i { width:7px; height:7px; border-radius:50%; background:#31415a; }
-    .tower-grid { display:grid; grid-template-columns:1.35fr .65fr; gap:12px; }
-    .dash-card { border:1px solid rgba(148,163,184,.13); background:rgba(4,10,20,.55); border-radius:16px; padding:15px; }
-    .dash-title { color:#8192a8; font-size:.68rem; text-transform:uppercase; letter-spacing:.09em; font-weight:800; }
-    .metric { margin-top:6px; font-size:1.75rem; font-weight:800; letter-spacing:-.04em; }
-    .metric small { font-size:.72rem; color:#7f91a8; margin-left:4px; }
-    .risk-pill { margin-top:8px; display:inline-flex; align-items:center; gap:7px; border-radius:999px; padding:5px 9px; color:#ffd9df; background:rgba(251,113,133,.12); border:1px solid rgba(251,113,133,.2); font-size:.69rem; font-weight:800; }
-    .chart { height:170px; margin-top:13px; position:relative; overflow:hidden; border-radius:11px; background:linear-gradient(180deg,rgba(56,189,248,.04),transparent); }
-    .chart svg { width:100%; height:100%; }
-    .chart-grid line { stroke:rgba(148,163,184,.10); stroke-width:1; }
-    .forecast-line { fill:none; stroke:url(#lineGradient); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 0 7px rgba(56,189,248,.4)); }
-    .area { fill:url(#areaGradient); }
-    .side-stack { display:grid; gap:12px; }
-    .mini-row { display:flex; align-items:flex-end; justify-content:space-between; margin-top:7px; gap:10px; }
-    .mini-value { font-size:1.18rem; font-weight:800; }
-    .mini-label { color:#72849a; font-size:.68rem; }
-    .bar { margin-top:9px; height:6px; background:#142237; border-radius:999px; overflow:hidden; }
-    .bar span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--cyan),var(--blue)); }
-    .decision-card { grid-column:1/-1; display:grid; grid-template-columns:1fr auto; align-items:center; gap:16px; }
-    .decision-copy strong { display:block; margin-top:4px; font-size:.95rem; }
-    .decision-copy p { color:#8394a8; font-size:.76rem; margin-top:3px; }
-    .approve { padding:9px 12px; border-radius:10px; color:#071b14; background:linear-gradient(135deg,#5de8b1,#28c998); font-weight:900; font-size:.76rem; }
-
-    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding-bottom:80px; }
-    .stat { padding:22px; border:1px solid var(--line); border-radius:17px; background:rgba(10,18,32,.62); }
-    .stat strong { display:block; font-size:1.35rem; letter-spacing:-.04em; }
-    .stat span { color:#7f90a6; font-size:.82rem; }
-
-    .section { padding:82px 0; }
-    .section-kicker { color:#75dcff; font-weight:800; text-transform:uppercase; letter-spacing:.10em; font-size:.78rem; }
-    .section-head { max-width:760px; margin-bottom:38px; }
-    .section-head.center { text-align:center; margin-inline:auto; }
-    h2 { margin-top:10px; font-size:clamp(2.1rem,4vw,3.55rem); line-height:1.08; letter-spacing:-.055em; }
-    .section-head p { margin-top:16px; color:#93a3b7; font-size:1.05rem; }
-
-    .problem-grid { display:grid; grid-template-columns:.9fr 1.1fr; gap:24px; align-items:stretch; }
-    .problem-copy, .problem-panel { border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); box-shadow:0 18px 60px rgba(0,0,0,.2); }
-    .problem-copy { padding:34px; }
-    .problem-copy h3 { font-size:1.55rem; letter-spacing:-.03em; }
-    .problem-copy p { color:#97a7ba; margin-top:14px; }
-    .problem-points { display:grid; gap:12px; margin-top:24px; }
-    .problem-point { display:flex; gap:12px; padding:13px 14px; border-radius:14px; background:rgba(255,255,255,.025); border:1px solid rgba(148,163,184,.10); }
-    .problem-point b { color:#dce8f6; font-size:.92rem; }
-    .problem-point span { display:block; color:#7e90a6; font-size:.8rem; }
-    .problem-panel { padding:26px; display:grid; grid-template-columns:repeat(2,1fr); gap:13px; }
-    .capability { min-height:150px; padding:19px; border:1px solid rgba(148,163,184,.12); border-radius:16px; background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012)); }
-    .capability-icon { width:39px; height:39px; display:grid; place-items:center; border-radius:11px; background:rgba(56,189,248,.09); color:#7fdcff; font-size:1.1rem; margin-bottom:15px; }
-    .capability h3 { font-size:1rem; }
-    .capability p { margin-top:7px; color:#8293a8; font-size:.82rem; }
-
-    .flow-shell { border:1px solid var(--line); border-radius:28px; padding:30px; background:linear-gradient(180deg,rgba(12,22,39,.86),rgba(6,12,23,.9)); box-shadow:var(--shadow); overflow:hidden; }
-    .flow-stage-labels { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; margin-bottom:13px; color:#6f8299; font-size:.68rem; text-transform:uppercase; letter-spacing:.12em; font-weight:800; }
-    .flow { display:grid; grid-template-columns:1fr 52px 1fr 52px 1fr 52px 1fr; align-items:center; gap:0; }
-    .flow-column { display:grid; gap:11px; }
-    .flow-node { position:relative; min-height:72px; padding:15px; border:1px solid rgba(148,163,184,.14); border-radius:14px; background:rgba(255,255,255,.025); transition:.25s ease; }
-    .flow-node:hover { transform:translateY(-3px); border-color:rgba(56,189,248,.38); box-shadow:0 12px 28px rgba(0,0,0,.2); }
-    .flow-node strong { display:block; font-size:.88rem; }
-    .flow-node span { color:#788a9f; font-size:.72rem; }
-    .flow-node.accent { background:linear-gradient(135deg,rgba(56,189,248,.11),rgba(79,124,255,.06)); border-color:rgba(56,189,248,.28); }
-    .flow-node.decision { background:linear-gradient(135deg,rgba(139,124,246,.13),rgba(56,189,248,.06)); border-color:rgba(139,124,246,.33); }
-    .flow-arrow { position:relative; height:2px; margin:0 10px; background:linear-gradient(90deg,rgba(56,189,248,.2),rgba(56,189,248,.8),rgba(139,124,246,.4)); }
-    .flow-arrow::after { content:""; position:absolute; right:-1px; top:50%; width:8px; height:8px; border-top:2px solid #68d9ff; border-right:2px solid #68d9ff; transform:translateY(-50%) rotate(45deg); }
-    .flow-arrow::before { content:""; position:absolute; width:12px; height:2px; background:#fff; box-shadow:0 0 12px #64d8ff; animation:travel 2.8s linear infinite; }
-    .feedback { margin-top:18px; padding:13px 16px; border:1px dashed rgba(50,213,155,.34); border-radius:13px; color:#9ce7c9; background:rgba(50,213,155,.045); text-align:center; font-size:.82rem; }
-
-    .feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:17px; }
-    .feature { min-height:245px; padding:25px; border-radius:18px; border:1px solid var(--line); background:rgba(11,20,35,.7); transition:.3s ease; }
-    .feature:hover { transform:translateY(-5px); border-color:rgba(56,189,248,.28); box-shadow:0 20px 45px rgba(0,0,0,.22); }
-    .feature .number { font-family:"JetBrains Mono", monospace; color:#6f8298; font-size:.72rem; }
-    .feature h3 { margin-top:26px; font-size:1.15rem; }
-    .feature p { margin-top:10px; color:#8192a7; font-size:.88rem; }
-    .tags { display:flex; flex-wrap:wrap; gap:7px; margin-top:20px; }
-    .tag { padding:5px 8px; border-radius:999px; background:rgba(56,189,248,.06); border:1px solid rgba(56,189,248,.13); color:#9ddffa; font-size:.67rem; font-weight:700; }
-
-    .governance { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-    .governance-panel { padding:30px; border:1px solid var(--line); border-radius:22px; background:var(--panel); }
-    .governance-panel h3 { font-size:1.35rem; }
-    .governance-panel > p { color:#8d9db1; margin-top:10px; }
-    .timeline { display:grid; gap:0; margin-top:24px; }
-    .timeline-row { position:relative; display:grid; grid-template-columns:32px 1fr; gap:12px; padding-bottom:22px; }
-    .timeline-row:not(:last-child)::before { content:""; position:absolute; left:15px; top:28px; bottom:0; width:1px; background:rgba(56,189,248,.2); }
-    .timeline-dot { width:31px; height:31px; display:grid; place-items:center; border-radius:10px; background:rgba(56,189,248,.08); border:1px solid rgba(56,189,248,.19); color:#7eddff; font-size:.72rem; font-weight:900; }
-    .timeline-row strong { font-size:.9rem; }
-    .timeline-row p { color:#7c8da2; font-size:.79rem; margin-top:3px; }
-    .audit-box { margin-top:22px; border:1px solid rgba(148,163,184,.13); border-radius:15px; overflow:hidden; }
-    .audit-row { display:grid; grid-template-columns:1fr auto; gap:12px; padding:13px 14px; background:rgba(4,10,20,.45); border-bottom:1px solid rgba(148,163,184,.08); font-family:"JetBrains Mono",monospace; font-size:.71rem; }
-    .audit-row:last-child { border-bottom:0; }
-    .audit-row span { color:#8292a8; }
-    .audit-row b { color:#a8f0d4; }
-
-    .stack { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
-    .stack span { padding:10px 13px; border-radius:11px; border:1px solid var(--line); background:rgba(255,255,255,.025); color:#a9b7c8; font-size:.82rem; font-weight:700; }
-
-    .cta { margin:68px auto 84px; padding:42px; border:1px solid rgba(56,189,248,.24); border-radius:28px; text-align:center; background:linear-gradient(135deg,rgba(56,189,248,.09),rgba(139,124,246,.08)); box-shadow:var(--shadow); }
-    .cta h2 { max-width:760px; margin-inline:auto; }
-    .cta p { color:#92a3b7; max-width:650px; margin:16px auto 0; }
-    .cta .hero-actions { justify-content:center; }
-
-    footer { border-top:1px solid rgba(148,163,184,.10); padding:26px 0 34px; color:#718399; font-size:.82rem; }
-    .footer-inner { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; }
-
-    @keyframes pulse { 70% { box-shadow:0 0 0 8px rgba(50,213,155,0); } 100% { box-shadow:0 0 0 0 rgba(50,213,155,0); } }
-    @keyframes travel { 0% { left:0; opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { left:calc(100% - 12px); opacity:0; } }
-
-    @media (max-width: 980px) {
-      .hero-grid, .problem-grid, .governance { grid-template-columns:1fr; }
-      .hero { padding-top:70px; }
-      .hero-copy { max-width:none; }
-      .stats { grid-template-columns:repeat(2,1fr); }
-      .feature-grid { grid-template-columns:repeat(2,1fr); }
-      .flow-stage-labels { display:none; }
-      .flow { grid-template-columns:1fr; gap:12px; }
-      .flow-arrow { width:2px; height:36px; margin:auto; background:linear-gradient(180deg,rgba(56,189,248,.2),rgba(56,189,248,.8),rgba(139,124,246,.4)); }
-      .flow-arrow::after { right:50%; top:auto; bottom:-1px; transform:translateX(50%) rotate(135deg); }
-      .flow-arrow::before { width:2px; height:10px; animation:travelVertical 2.8s linear infinite; }
+    .card {
+      background: rgba(17, 24, 39, 0.7);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
     }
-    @keyframes travelVertical { 0% { top:0; opacity:0; } 15% { opacity:1; } 85% { opacity:1; } 100% { top:calc(100% - 10px); opacity:0; } }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px var(--primary-glow);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .card:hover::before { opacity: 1; }
+    .card-icon {
+      width: 48px; height: 48px; background: rgba(56, 189, 248, 0.1);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: var(--primary); margin-bottom: 24px;
+      box-shadow: inset 0 0 12px rgba(56, 189, 248, 0.2);
+    }
+    .card h3 { font-size: 1.3rem; margin-bottom: 12px; }
+    .card p { color: var(--text-muted); font-size: 0.95rem; }
 
-    @media (max-width: 720px) {
-      .container { width:min(100% - 24px,1180px); }
-      .nav-links { display:none; }
-      .nav-cta { padding:9px 12px; font-size:.8rem; }
-      h1 { font-size:clamp(3rem,15vw,4.5rem); }
-      .hero-grid { gap:38px; }
-      .tower-grid, .problem-panel, .feature-grid { grid-template-columns:1fr; }
-      .decision-card { grid-template-columns:1fr; }
-      .approve { width:fit-content; }
-      .stats { grid-template-columns:1fr 1fr; }
-      .section { padding:64px 0; }
-      .flow-shell, .cta { padding:22px; }
-      .cta { margin-bottom:58px; }
+    /* Diagram Section */
+    .diagram-container {
+      background: #0d1117; /* Darker bg for mermaid contrast */
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      margin-top: 20px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+      text-align: center;
+      overflow-x: auto;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior:auto; }
-      *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+
+
+    /* Added content uses the original visual language */
+    .feature-list {
+      list-style: none;
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+    .feature-list li {
+      color: var(--text-muted);
+      padding-left: 24px;
+      position: relative;
+      font-size: 0.95rem;
+    }
+    .feature-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 700;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .tag {
+      border: 1px solid var(--border);
+      background: rgba(17, 24, 39, 0.65);
+      color: var(--text-muted);
+      border-radius: 999px;
+      padding: 7px 13px;
+      font-size: 0.85rem;
+    }
+    .highlight-card {
+      background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.05));
+    }
+    .metric {
+      color: var(--primary);
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .footer {
+      padding: 30px 0 48px;
+      text-align: center;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 30px;
+      font-size: 0.9rem;
+    }
+    .diagram-note {
+      color: var(--text-muted);
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .floating-img {
+      font-size: 8rem;
+      text-align: center;
+      animation: float 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.3));
+    }
+
+    @media (max-width: 768px) {
+      .about-grid { grid-template-columns: 1fr; }
     }
   </style>
+  <!-- Load Mermaid.js for the architecture diagram -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        background: '#0d1117',
+        primaryColor: '#111827',
+        primaryTextColor: '#f9fafb',
+        primaryBorderColor: '#38bdf8',
+        lineColor: '#818cf8',
+        secondaryColor: '#1f2937',
+        tertiaryColor: '#030712'
+      }
+    });
+  </script>
 </head>
 <body>
-  <nav class="nav">
-    <div class="container nav-inner">
-      <a class="brand" href="#top"><span class="brand-mark">⚡</span><span>GridGuard AI</span></a>
-      <div class="nav-links">
-        <a href="#capabilities">Capabilities</a>
-        <a href="#architecture">Architecture</a>
-        <a href="#governance">Governance</a>
-        <a href="#stack">Technology</a>
-      </div>
-      <a class="nav-cta" href="#architecture">Explore system</a>
-    </div>
-  </nav>
 
-  <main id="top">
-    <section class="hero">
-      <div class="container hero-grid">
-        <div>
-          <div class="eyebrow"><span class="pulse-dot"></span> Human-governed grid intelligence</div>
-          <h1 class="gradient-text">See grid risk before it becomes grid failure.</h1>
-          <p class="hero-copy">GridGuard AI forecasts electricity demand, tests operational scenarios, explains the drivers behind risk, and gives operators an auditable recommendation—without surrendering human control.</p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#architecture">View decision flow <span>→</span></a>
-            <a class="btn btn-secondary" href="#capabilities">Explore capabilities</a>
-          </div>
-          <div class="hero-proof">
-            <span><b class="check">✓</b> 12–48 hour forecasts</span>
-            <span><b class="check">✓</b> SHAP explainability</span>
-            <span><b class="check">✓</b> Human approval gate</span>
-          </div>
-        </div>
+  <header class="hero container">
+    <h1>GridGuard AI</h1>
+    <p>Explainable decision intelligence for modern electric grids. Forecast load, identify peak risks, and keep a human operator firmly in control.</p>
+  </header>
 
-        <div class="control-tower" aria-label="Illustrative GridGuard control tower dashboard">
-          <div class="tower-bar">
-            <span>GRIDGUARD / CONTROL TOWER</span>
-            <span class="window-dots"><i></i><i></i><i></i></span>
-          </div>
-          <div class="tower-grid">
-            <div class="dash-card">
-              <div class="dash-title">Forecasted system load</div>
-              <div class="metric">42,860 <small>MW</small></div>
-              <div class="risk-pill">● Elevated peak risk · 18:00–20:00</div>
-              <div class="chart">
-                <svg viewBox="0 0 520 170" preserveAspectRatio="none" role="img" aria-label="Forecast load chart">
-                  <defs>
-                    <linearGradient id="lineGradient" x1="0" x2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#8b7cf6"/></linearGradient>
-                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".28"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></linearGradient>
-                  </defs>
-                  <g class="chart-grid"><line x1="0" y1="40" x2="520" y2="40"/><line x1="0" y1="85" x2="520" y2="85"/><line x1="0" y1="130" x2="520" y2="130"/></g>
-                  <path class="area" d="M0,124 C40,112 58,116 94,102 C130,88 152,91 186,76 C222,60 250,75 281,58 C322,37 345,46 382,34 C421,20 458,45 520,20 L520,170 L0,170 Z"/>
-                  <path class="forecast-line" d="M0,124 C40,112 58,116 94,102 C130,88 152,91 186,76 C222,60 250,75 281,58 C322,37 345,46 382,34 C421,20 458,45 520,20"/>
-                </svg>
-              </div>
-            </div>
-            <div class="side-stack">
-              <div class="dash-card">
-                <div class="dash-title">Reserve margin</div>
-                <div class="mini-row"><span class="mini-value">8.4%</span><span class="mini-label">threshold 10%</span></div>
-                <div class="bar"><span style="width:68%"></span></div>
-              </div>
-              <div class="dash-card">
-                <div class="dash-title">Model confidence</div>
-                <div class="mini-row"><span class="mini-value">91%</span><span class="mini-label">validated</span></div>
-                <div class="bar"><span style="width:91%"></span></div>
-              </div>
-              <div class="dash-card">
-                <div class="dash-title">Top driver</div>
-                <div class="mini-row"><span class="mini-value">Temp.</span><span class="mini-label">SHAP +0.31</span></div>
-                <div class="bar"><span style="width:76%"></span></div>
-              </div>
-            </div>
-            <div class="dash-card decision-card">
-              <div class="decision-copy">
-                <div class="dash-title">Recommended operator action</div>
-                <strong>Prepare 1.8 GW demand-response reserve</strong>
-                <p>Rule trace: low reserve margin + forecasted temperature-driven evening peak.</p>
-              </div>
-              <div class="approve">Awaiting approval</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="container stats" aria-label="GridGuard key capabilities">
-      <div class="stat"><strong>3</strong><span>interchangeable data modes</span></div>
-      <div class="stat"><strong>12–48h</strong><span>configurable forecast horizon</span></div>
-      <div class="stat"><strong>100%</strong><span>operator-controlled decisions</span></div>
-      <div class="stat"><strong>1 ledger</strong><span>for traceable approvals</span></div>
-    </section>
-
-    <section class="section" id="capabilities">
-      <div class="container">
-        <div class="section-head">
-          <div class="section-kicker">The operational problem</div>
-          <h2>Forecasts alone are not enough.</h2>
-          <p>Grid operators need more than a predicted number. They need evidence, policy context, scenario awareness, and a governed path from insight to action.</p>
-        </div>
-        <div class="problem-grid">
-          <div class="problem-copy">
-            <h3>GridGuard closes the decision gap.</h3>
-            <p>It combines machine learning with deterministic controls, explainable evidence, and operator review so every recommendation can be challenged, understood, and audited.</p>
-            <div class="problem-points">
-              <div class="problem-point"><div>01</div><div><b>Anticipate demand pressure</b><span>Forecast load, peaks, and reserve-margin stress before the operating window.</span></div></div>
-              <div class="problem-point"><div>02</div><div><b>Explain the recommendation</b><span>Surface feature impact, fired rules, retrieved policy, and confidence.</span></div></div>
-              <div class="problem-point"><div>03</div><div><b>Keep humans accountable</b><span>Require explicit approval or rejection with a permanent rationale trail.</span></div></div>
-            </div>
-          </div>
-          <div class="problem-panel">
-            <div class="capability"><div class="capability-icon">↻</div><h3>Multi-source ingestion</h3><p>Switch between synthetic, historical Kaggle, and live EIA-style data through a normalized adapter layer.</p></div>
-            <div class="capability"><div class="capability-icon">⌁</div><h3>Load forecasting</h3><p>Generate rolling 12–48 hour demand forecasts using lag, calendar, weather, and rolling features.</p></div>
-            <div class="capability"><div class="capability-icon">△</div><h3>Scenario stress testing</h3><p>Explore temperature shocks, demand spikes, outages, and capacity constraints before they occur.</p></div>
-            <div class="capability"><div class="capability-icon">◎</div><h3>Explainable decisions</h3><p>Combine SHAP drivers, deterministic rule traces, confidence scoring, and grounded policy retrieval.</p></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="architecture">
-      <div class="container">
-        <div class="section-head center">
-          <div class="section-kicker">End-to-end decision flow</div>
-          <h2>From raw grid signals to governed action.</h2>
-          <p>This custom flow replaces the flatter Mermaid diagram with a clearer, portfolio-ready view of how data, models, policy, and human oversight work together.</p>
-        </div>
-        <div class="flow-shell">
-          <div class="flow-stage-labels"><span>1 · Sources</span><span>2 · Intelligence</span><span>3 · Decision</span><span>4 · Governance</span></div>
-          <div class="flow">
-            <div class="flow-column">
-              <div class="flow-node"><strong>Synthetic generator</strong><span>Controlled demonstrations and testing</span></div>
-              <div class="flow-node"><strong>Kaggle historical data</strong><span>Repeatable model development</span></div>
-              <div class="flow-node"><strong>EIA hourly feed</strong><span>Live balancing-authority signals</span></div>
-            </div>
-            <div class="flow-arrow"></div>
-            <div class="flow-column">
-              <div class="flow-node accent"><strong>Validation + canonical schema</strong><span>Quality checks, timestamps, missing-hour repair</span></div>
-              <div class="flow-node accent"><strong>XGBoost forecaster</strong><span>12–48h load forecast + SHAP drivers</span></div>
-              <div class="flow-node accent"><strong>Scenario engine</strong><span>Weather, outage, reserve, and demand shocks</span></div>
-            </div>
-            <div class="flow-arrow"></div>
-            <div class="flow-column">
-              <div class="flow-node decision"><strong>Deterministic risk rules</strong><span>Thresholds, severity, fired-rule trace</span></div>
-              <div class="flow-node decision"><strong>Local RAG policy context</strong><span>TF-IDF retrieval from governance documents</span></div>
-              <div class="flow-node decision"><strong>X-Decision briefing</strong><span>Evidence-grounded recommendation</span></div>
-            </div>
-            <div class="flow-arrow"></div>
-            <div class="flow-column">
-              <div class="flow-node"><strong>Streamlit control tower</strong><span>Operator review and evidence inspection</span></div>
-              <div class="flow-node"><strong>Approve / reject / override</strong><span>Human rationale required</span></div>
-              <div class="flow-node"><strong>Audit ledger</strong><span>JSON or PostgreSQL persistence</span></div>
-            </div>
-          </div>
-          <div class="feedback">↺ Operator outcomes and audit history feed future review, retraining, and governance tuning.</div>
-        </div>
-      </div>
-    </section>
-
+  <main class="container">
+    
+    <!-- About Section -->
     <section class="section">
-      <div class="container">
-        <div class="section-head center">
-          <div class="section-kicker">Core architecture</div>
-          <h2>Six layers, one explainable operating picture.</h2>
+      <div class="about-grid">
+        <div class="about-text">
+          <h3>Why do we need GridGuard?</h3>
+          <p>Modern electric grids are under unprecedented stress. Extreme weather events, fluctuating temperatures, and unpredictable demand shocks require operators to make high-stakes decisions rapidly.</p>
+          <p>Traditional forecasting models provide numbers, but lack context. Fully autonomous AI systems act like "black boxes," making decisions that operators can't audit or trust.</p>
+          <p><strong>GridGuard AI solves this</strong> by combining powerful XGBoost machine learning with a transparent "Expert System." It provides operators with a crystal-clear forecast, evaluates risks using hard-coded governance rules, surfaces relevant grid policies via Local RAG, and ultimately requires human approval for any action.</p>
         </div>
-        <div class="feature-grid">
-          <article class="feature"><span class="number">01 / DATA</span><h3>Ingestion & normalization</h3><p>Adapters consolidate multiple source formats into a consistent hourly schema with validation and missing-data handling.</p><div class="tags"><span class="tag">Synthetic</span><span class="tag">Kaggle</span><span class="tag">EIA</span></div></article>
-          <article class="feature"><span class="number">02 / MODEL</span><h3>XGBoost forecasting</h3><p>Lag, rolling, time, and weather features support short-horizon load forecasting while SHAP exposes the strongest drivers.</p><div class="tags"><span class="tag">XGBoost</span><span class="tag">SHAP</span><span class="tag">Backtesting</span></div></article>
-          <article class="feature"><span class="number">03 / RISK</span><h3>Expert risk engine</h3><p>Deterministic rules convert forecasts into operational risk levels, fired-rule traces, confidence, and escalation signals.</p><div class="tags"><span class="tag">Rules</span><span class="tag">Thresholds</span><span class="tag">Confidence</span></div></article>
-          <article class="feature"><span class="number">04 / CONTEXT</span><h3>Local RAG policy retrieval</h3><p>TF-IDF retrieval supplies relevant operating policies and governance context without requiring an external vector database.</p><div class="tags"><span class="tag">TF-IDF</span><span class="tag">Grounding</span><span class="tag">Policies</span></div></article>
-          <article class="feature"><span class="number">05 / HUMAN</span><h3>Operator approval gate</h3><p>The system recommends; the operator decides. Approval, rejection, and override actions retain human accountability.</p><div class="tags"><span class="tag">HITL</span><span class="tag">Override</span><span class="tag">Rationale</span></div></article>
-          <article class="feature"><span class="number">06 / AUDIT</span><h3>Persistent decision ledger</h3><p>Inputs, model evidence, recommendations, and human actions are retained for compliance, review, and continuous improvement.</p><div class="tags"><span class="tag">JSON</span><span class="tag">PostgreSQL</span><span class="tag">Traceability</span></div></article>
+        <div class="floating-img">⚡</div>
+      </div>
+    </section>
+
+    <!-- Architecture Breakdown -->
+    <section class="section">
+      <div class="section-header">
+        <h2>System Architecture Breakdown</h2>
+        <p>A look at the underlying data pipelines, forecasting models, and decision intelligence.</p>
+      </div>
+      
+      <div class="arch-grid">
+        <div class="card">
+          <div class="card-icon">🗄️</div>
+          <h3>1. Data Ingestion & Normalization</h3>
+          <p>Ingests from Synthetic generators, historical Kaggle CSVs, or live EIA balancing-authority APIs. Normalizes all timestamps and interpolates missing hours into a canonical schema.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <h3>2. XGBoost & SHAP Forecasting</h3>
+          <p>Predicts 12–48 hours of future demand using rolling and autoregressive lag features. Utilizes SHAP values to explain exactly which features (like temperature or time of day) drove the forecast.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚙️</div>
+          <h3>3. Expert Risk Engine</h3>
+          <p>Translates the forecast into operational risk. A deterministic, hard-coded rules engine evaluates capacity pressure and demand shocks, generating a fired-rule trace and an objective confidence score.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>4. X-Decision & Local RAG</h3>
+          <p>Uses TF-IDF to retrieve relevant governance policies (Local RAG). Combines the forecast, risk rules, and retrieved policies into a grounded briefing, with optional LLM (Grok/Groq/Gemini) summarization.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">👤</div>
+          <h3>5. Human-in-the-loop (HITL)</h3>
+          <p>No decision executes autonomously. Operators review the evidence in the Streamlit Control Tower and must explicitly approve or reject the recommendation with an auditable rationale.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3>6. Audit & Persistence</h3>
+          <p>Approved actions and their rationales are stored securely in a local JSON ledger or a remote PostgreSQL database to ensure strict regulatory compliance and historical review.</p>
         </div>
       </div>
     </section>
 
-    <section class="section" id="governance">
-      <div class="container">
-        <div class="section-head">
-          <div class="section-kicker">Responsible AI governance</div>
-          <h2>Designed to assist—not replace—the grid operator.</h2>
-          <p>GridGuard separates prediction, policy, recommendation, and authority so no model output becomes an operational action without accountable human review.</p>
+    <!-- Architecture Diagram -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Architecture Diagram</h2>
+        <p>The complete end-to-end data and decision pipeline.</p>
+      </div>
+      <div class="diagram-container">
+        <!-- Mermaid diagram definition -->
+        <div class="mermaid">
+          flowchart LR
+              subgraph DATA[1. Data Layer]
+                SYN[Synthetic Generator]
+                KAG[Kaggle CSV / ZIP]
+                EIA[EIA Hourly API]
+                SYN --> ADAPTER[Source Adapter]
+                KAG --> ADAPTER
+                EIA --> ADAPTER
+                ADAPTER --> VALIDATE[Validation & Quality Checks]
+                VALIDATE --> SCHEMA[Canonical Hourly Schema]
+              end
+
+              subgraph INTEL[2. Forecast & Intelligence]
+                SCHEMA --> FE[Feature Engineering]
+                FE --> XGB[XGBoost 12–48h Forecast]
+                XGB --> SHAP[SHAP Explanations]
+                XGB --> RISK[Capacity & Peak-Risk Engine]
+                RULES[Deterministic Governance Rules] --> XDEC[X-Decision Engine]
+                RAG[Local Policy RAG] --> XDEC
+                SHAP --> XDEC
+                RISK --> XDEC
+                LLM[Optional Groq / Gemini / Grok Summary] --> XDEC
+              end
+
+              subgraph CONTROL[3. Human Control & Governance]
+                XDEC --> UI[Streamlit Control Tower]
+                OP[Grid Operator] --> UI
+                UI --> DECISION{Approve, Reject or Escalate}
+                DECISION --> AUDIT[(Immutable Audit Ledger)]
+                API[Flask API] --> OPS[Health & Operational Status]
+                OPS --> UI
+              end
+
+              classDef source fill:#111827,stroke:#38bdf8,color:#f9fafb;
+              classDef engine fill:#111827,stroke:#818cf8,color:#f9fafb;
+              classDef human fill:#111827,stroke:#34d399,color:#f9fafb;
+              class SYN,KAG,EIA,ADAPTER,VALIDATE,SCHEMA source;
+              class FE,XGB,SHAP,RISK,RULES,RAG,LLM,XDEC engine;
+              class OP,UI,DECISION,AUDIT,API,OPS human;
         </div>
-        <div class="governance">
-          <div class="governance-panel">
-            <h3>Decision evidence chain</h3>
-            <p>Every recommendation carries the ingredients an operator needs to challenge it.</p>
-            <div class="timeline">
-              <div class="timeline-row"><div class="timeline-dot">1</div><div><strong>Forecast evidence</strong><p>Predicted load, confidence, horizon, and feature impact.</p></div></div>
-              <div class="timeline-row"><div class="timeline-dot">2</div><div><strong>Risk-rule trace</strong><p>The exact deterministic rules and thresholds that fired.</p></div></div>
-              <div class="timeline-row"><div class="timeline-dot">3</div><div><strong>Policy grounding</strong><p>Relevant governance passages retrieved from the local knowledge base.</p></div></div>
-              <div class="timeline-row"><div class="timeline-dot">4</div><div><strong>Human disposition</strong><p>Approval, rejection, or override with named rationale.</p></div></div>
-            </div>
-          </div>
-          <div class="governance-panel">
-            <h3>Illustrative audit record</h3>
-            <p>The ledger preserves the full path from data to decision.</p>
-            <div class="audit-box">
-              <div class="audit-row"><span>run_id</span><b>GG-2026-0717-1842</b></div>
-              <div class="audit-row"><span>forecast_peak</span><b>42,860 MW</b></div>
-              <div class="audit-row"><span>risk_level</span><b>ELEVATED</b></div>
-              <div class="audit-row"><span>fired_rules</span><b>RM-02, WX-04</b></div>
-              <div class="audit-row"><span>recommendation</span><b>PREPARE_DR</b></div>
-              <div class="audit-row"><span>operator_status</span><b>PENDING</b></div>
-            </div>
-          </div>
+        <p class="diagram-note">The intelligence layer recommends and explains; the operator remains the final decision authority.</p>
+      </div>
+    </section>
+
+    <!-- Operational Capabilities -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Operational Capabilities</h2>
+        <p>GridGuard is designed as a decision-support control tower rather than an autonomous grid controller.</p>
+      </div>
+      <div class="arch-grid">
+        <div class="card highlight-card">
+          <div class="card-icon">🌡️</div>
+          <h3>Weather & Demand Scenarios</h3>
+          <p>Stress-test the forecast against heatwaves, cold snaps, demand surges, generation loss, and reduced reserve capacity.</p>
+          <ul class="feature-list">
+            <li>Adjust temperature and load assumptions</li>
+            <li>Compare baseline and stressed outcomes</li>
+            <li>Surface changes in reserve margin</li>
+          </ul>
+        </div>
+        <div class="card highlight-card">
+          <div class="card-icon">🚨</div>
+          <h3>Peak-Risk Detection</h3>
+          <p>Converts raw forecasts into clear operating signals by assessing capacity pressure, demand shocks, and confidence.</p>
+          <ul class="feature-list">
+            <li>Low, guarded, elevated, and critical states</li>
+            <li>Fired-rule trace for every recommendation</li>
+            <li>Escalation when evidence is uncertain</li>
+          </ul>
+        </div>
+        <div class="card highlight-card">
+          <div class="card-icon">🔎</div>
+          <h3>Explainable Recommendations</h3>
+          <p>Pairs model output with SHAP feature attribution, deterministic rules, and retrieved policy evidence.</p>
+          <ul class="feature-list">
+            <li>Top forecast drivers</li>
+            <li>Relevant operating-policy excerpts</li>
+            <li>Plain-language decision briefings</li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <section class="section" id="stack">
-      <div class="container">
-        <div class="section-head center">
-          <div class="section-kicker">Technology stack</div>
-          <h2>Built for practical deployment and transparent operation.</h2>
+    <!-- Portfolio Value -->
+    <section class="section">
+      <div class="section-header">
+        <h2>What This Project Demonstrates</h2>
+        <p>A production-minded AI portfolio project spanning forecasting, data engineering, governance, and human-centered decision support.</p>
+      </div>
+      <div class="arch-grid">
+        <div class="card">
+          <div class="metric">3</div>
+          <h3>Selectable Data Modes</h3>
+          <p>Switch between synthetic data, historical Kaggle files, and live EIA hourly data without changing the downstream workflow.</p>
         </div>
-        <div class="stack">
-          <span>Python</span><span>Streamlit</span><span>Flask</span><span>XGBoost</span><span>SHAP</span><span>Pandas</span><span>scikit-learn</span><span>TF-IDF RAG</span><span>PostgreSQL</span><span>Docker</span><span>Railway</span><span>Gemini / Groq / Grok</span>
+        <div class="card">
+          <div class="metric">12–48h</div>
+          <h3>Forecast Horizon</h3>
+          <p>Supports near-term operational planning with lag features, rolling statistics, weather inputs, and explainable predictions.</p>
         </div>
-        <div class="cta">
-          <div class="section-kicker">Grid decision intelligence</div>
-          <h2>Forecast the pressure. Explain the risk. Govern the response.</h2>
-          <p>GridGuard AI turns machine-learning output into an operationally useful, auditable recommendation while keeping the human operator at the center of every decision.</p>
-          <div class="hero-actions"><a class="btn btn-primary" href="#top">Return to control tower ↑</a></div>
+        <div class="card">
+          <div class="metric">100%</div>
+          <h3>Human-Controlled Actions</h3>
+          <p>Recommendations never execute automatically. Approval, rejection, escalation, rationale, and evidence are retained for audit.</p>
         </div>
       </div>
+      <div class="tag-row" aria-label="Technology stack">
+        <span class="tag">Python</span><span class="tag">Streamlit</span><span class="tag">Flask</span>
+        <span class="tag">XGBoost</span><span class="tag">SHAP</span><span class="tag">Pandas</span>
+        <span class="tag">EIA API</span><span class="tag">TF-IDF RAG</span><span class="tag">PostgreSQL</span>
+        <span class="tag">Groq</span><span class="tag">Gemini</span><span class="tag">Grok</span>
+      </div>
     </section>
+
   </main>
 
-  <footer>
-    <div class="container footer-inner"><span>GridGuard AI · Explainable Grid Decision Intelligence</span><span>Built as a human-in-the-loop AI operations portfolio project.</span></div>
+  <footer class="footer container">
+    GridGuard AI — Explainable forecasting, governed recommendations, and human-led grid operations.
   </footer>
+
 </body>
 </html>
