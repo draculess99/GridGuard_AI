@@ -26,7 +26,7 @@ from backend.rag import LocalRagIndex
 from backend.service import build_forecast_package
 from backend.token_meter import TokenMeter
 
-load_dotenv()
+load_dotenv(override=True)
 
 st.set_page_config(
     page_title="GridGuard AI",
