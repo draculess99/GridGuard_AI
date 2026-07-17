@@ -530,9 +530,25 @@ with tab_scenario:
     if selected_preset != st.session_state.get("last_preset"):
         st.session_state.last_preset = selected_preset
         if presets[selected_preset] is not None:
-            st.session_state.scenario = presets[selected_preset].copy()
+            new_scenario = presets[selected_preset].copy()
         else:
-            st.session_state.scenario = {"temperature_delta": 0.0, "outage_mw": 0.0, "demand_shock_pct": 0.0}
+            new_scenario = {"temperature_delta": 0.0, "outage_mw": 0.0, "demand_shock_pct": 0.0}
+            
+        st.session_state.scenario = new_scenario
+        
+        # Explicitly update the slider widget states in session_state
+        st.session_state.slider_temp = float(new_scenario["temperature_delta"])
+        st.session_state.slider_outage = float(new_scenario["outage_mw"])
+        st.session_state.slider_shock = float(new_scenario["demand_shock_pct"])
+        
+        # Automatically run the scenario
+        st.session_state.forecast_package = build_forecast_package(
+            bundle=bundle,
+            horizon=forecast_hours,
+            capacity_mw=float(capacity_mw),
+            scenario=new_scenario,
+        )
+        st.session_state.last_decision_intelligence = None
         st.rerun()
 
     sc1, sc2, sc3 = st.columns(3)
