@@ -154,9 +154,13 @@ sequenceDiagram
     R-->>UI: Ranked chunks with source identifiers
     alt Internal Expert System
         UI-->>O: Deterministic briefing, no tokens
-    else Grok / Groq / Gemini
+    else Groq / Gemini (Single-Shot)
         UI->>L: Facts + rules + RAG context
         L-->>UI: Grounded briefing + usage metadata
+    else Multi-Agent Debate Committee
+        UI->>L: Analyst (Groq) evaluates risk
+        L->>L: Compliance (Gemini) checks policy
+        L-->>UI: Chief Dispatcher (Groq/Gemini) synthesis
     end
     O->>UI: Approve or reject with rationale
     UI->>D: Persist decision and data provenance
@@ -400,7 +404,7 @@ The decision workflow combines:
 1. **Forecast evidence** — peak demand, peak time, reserve margin and model metrics.
 2. **Deterministic expert rules** — a transparent rule trace and confidence level.
 3. **Local RAG evidence** — policy and governance chunks with source identifiers.
-4. **Optional provider briefing** — Grok, Groq or Gemini receives only the grounded evidence assembled by GridGuard.
+4. **Optional LLM reasoning** — Groq or Gemini can provide single-shot summaries, or be orchestrated into a Multi-Agent Debate Committee to critically evaluate the evidence.
 5. **Human approval** — no recommendation is executed automatically.
 
 ### Internal expert system
@@ -417,6 +421,15 @@ The internal provider requires no API key and consumes no LLM tokens. It evaluat
 
 The UI displays every fired rule and its evidence.
 
+### Multi-Agent Debate Committee
+
+If the user selects an LLM provider (Groq or Gemini) and enables the **Multi-Agent Debate Committee** toggle, the decision intelligence pipeline uses a 3-agent orchestration instead of a single LLM call:
+1. **Quantitative Analyst (Groq):** Assesses pure statistical risk, capacity pressure, and demand shocks based strictly on the XGBoost evidence.
+2. **Compliance Officer (Gemini):** Takes the analyst's assessment and cross-references it against local RAG policy documents to enforce regulatory rules and safety margins.
+3. **Chief Dispatcher:** Synthesizes the debate into a final, unified operational recommendation for the human operator.
+
+> **Note on inference engines:** The Internal Expert System does *not* have access to the Debate Committee. If the Internal Expert System is selected, the platform relies on a completely different deterministic inference engine that uses hard-coded boolean logic and zero LLM tokens. The Debate Committee only exists when utilizing the Groq or Gemini LLM inference engines.
+
 ---
 
 ## Decision-provider switch
@@ -426,11 +439,10 @@ The sidebar supports:
 | Provider | Credential | Purpose |
 |---|---|---|
 | Internal Expert System | None | Deterministic zero-token briefing |
-| Grok through xAI | `XAI_API_KEY` | Optional grounded natural-language briefing |
-| GroqCloud | `GROQ_API_KEY` | Optional fast hosted-model briefing |
+| Groq GROQ | `GROQ_API_KEY` | Optional fast hosted-model briefing |
 | Google Gemini | `GEMINI_API_KEY` | Optional grounded Gemini briefing |
 
-Provider failures do not remove the internal expert system. Optional LLM text is advisory and never receives direct control authority.
+The **Multi-Agent Debate Committee** is available as a toggle when Groq or Gemini is active. Provider failures do not remove the internal expert system. Optional LLM text is advisory and never receives direct control authority.
 
 ---
 
