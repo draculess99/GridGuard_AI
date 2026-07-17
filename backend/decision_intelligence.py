@@ -89,13 +89,15 @@ def run_decision_intelligence(
         if not available:
             raise ValueError("Debate Committee requires at least one configured LLM provider.")
         
-        analyst_prov = "groq" if "groq" in available else available[0]
-        compliance_prov = "gemini" if "gemini" in available else available[0]
-        chief_prov = "groq" if len(available) == 1 else ("gemini" if "gemini" in available else "groq")
+        # Use the user's selected primary provider for all agents in the committee
+        primary_prov = "gemini" if "gemini" in model.lower() else "groq"
         
-        import os
-        analyst_model = os.getenv("GRIDGUARD_GROQ_MODEL", "openai/gpt-oss-120b") if analyst_prov == "groq" else model
-        compliance_model = os.getenv("GRIDGUARD_GEMINI_MODEL", "gemini-2.5-flash") if compliance_prov == "gemini" else model
+        analyst_prov = primary_prov
+        compliance_prov = primary_prov
+        chief_prov = primary_prov
+        
+        analyst_model = model
+        compliance_model = model
         chief_model = model
 
         transcript = []
