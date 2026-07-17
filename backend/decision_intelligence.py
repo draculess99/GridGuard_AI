@@ -85,18 +85,18 @@ def run_decision_intelligence(
         }
 
     if normalized == "debate_committee":
-        available = [p for p in ["grok", "groq", "gemini"] if configured(p)]
+        available = [p for p in ["groq", "gemini"] if configured(p)]
         if not available:
             raise ValueError("Debate Committee requires at least one configured LLM provider.")
         
         analyst_prov = "groq" if "groq" in available else available[0]
         compliance_prov = "gemini" if "gemini" in available else available[0]
-        chief_prov = "grok" if "grok" in available else available[-1]
+        chief_prov = "groq" if len(available) == 1 else ("gemini" if "gemini" in available else "groq")
         
         import os
         analyst_model = os.getenv("GRIDGUARD_GROQ_MODEL", "openai/gpt-oss-120b") if analyst_prov == "groq" else model
         compliance_model = os.getenv("GRIDGUARD_GEMINI_MODEL", "gemini-2.5-flash") if compliance_prov == "gemini" else model
-        chief_model = os.getenv("GRIDGUARD_GROK_MODEL", "grok-4.5") if chief_prov == "grok" else model
+        chief_model = model
 
         transcript = []
         total_prompt = 0

@@ -111,7 +111,6 @@ rag = resource_rag()
 
 provider_labels = {
     "internal_expert_system": "Internal Expert System (no tokens)",
-    "grok": "Grok — xAI API",
     "groq": "GroqCloud",
     "gemini": "Gemini API",
     "debate_committee": "Multi-Agent Debate Committee",
@@ -259,7 +258,6 @@ with st.sidebar:
     )
     model_options = PROVIDER_MODELS.get(decision_provider, ["deterministic-rules-v1"])
     env_model_names = {
-        "grok": os.getenv("GRIDGUARD_GROK_MODEL", "grok-4.5"),
         "groq": os.getenv("GRIDGUARD_GROQ_MODEL", "openai/gpt-oss-120b"),
         "gemini": os.getenv("GRIDGUARD_GEMINI_MODEL", "gemini-2.5-flash"),
     }
@@ -273,7 +271,7 @@ with st.sidebar:
         if provider_configured(decision_provider):
             st.success(f"{provider_labels[decision_provider]} key detected.")
         else:
-            required = {"grok": "XAI_API_KEY", "groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY"}[decision_provider]
+            required = {"groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY"}.get(decision_provider, "API_KEY")
             st.warning(f"{required} is not configured. The internal expert system remains available.")
 
         usage = meter.snapshot()["providers"][decision_provider]

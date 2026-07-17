@@ -25,7 +25,6 @@ class ProviderResponse:
 
 
 PROVIDER_MODELS = {
-    "grok": ["grok-4.5"],
     "groq": ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
     "gemini": ["gemini-2.5-flash", "gemini-2.5-pro"],
 }
@@ -33,7 +32,6 @@ PROVIDER_MODELS = {
 
 def configured(provider: str) -> bool:
     keys = {
-        "grok": "XAI_API_KEY",
         "groq": "GROQ_API_KEY",
         "gemini": "GEMINI_API_KEY",
     }
