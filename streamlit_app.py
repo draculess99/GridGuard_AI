@@ -284,16 +284,6 @@ with st.sidebar:
         else:
             required = {"groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY"}.get(decision_provider, "API_KEY")
             st.warning(f"{required} is not configured. The internal expert system remains available.")
-
-        usage = meter.snapshot()["providers"][decision_provider]
-        budget = int(os.getenv(f"GRIDGUARD_{decision_provider.upper()}_TOKEN_BUDGET", "100000"))
-        st.caption(f"Local token meter: **{usage['total_tokens']:,} / {budget:,}**")
-        st.progress(min(usage["total_tokens"] / max(budget, 1), 1.0))
-        st.caption(f"Prompt {usage['prompt_tokens']:,} · Completion {usage['completion_tokens']:,} · Requests {usage['requests']:,}")
-        if st.button("Reset selected token meter", width="stretch"):
-            meter.reset(decision_provider)
-            st.success("Local token counter reset. Provider billing/quota is unchanged.")
-            st.rerun()
     else:
         st.caption("Deterministic rules use no external LLM tokens.")
 
