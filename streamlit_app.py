@@ -575,8 +575,13 @@ with tab_model:
     compare_fig.add_trace(go.Scatter(x=comparison["timestamp"], y=comparison["actual_mw"], name="Actual"))
     compare_fig.add_trace(go.Scatter(x=comparison["timestamp"], y=comparison["xgb_mw"], name="XGBoost"))
     compare_fig.add_trace(go.Scatter(x=comparison["timestamp"], y=comparison["naive_mw"], name="Seasonal naive"))
-    compare_fig.update_layout(title="Chronological holdout performance", height=430, yaxis_title="Demand (MW)")
+    compare_fig.update_layout(title="Chronological holdout performance (Backtesting)", height=430, yaxis_title="Demand (MW)")
     st.plotly_chart(compare_fig, width="stretch")
+    st.info("""
+    **Understanding this Backtesting Graph:**
+    This graph represents our strict **chronological backtesting** methodology. To prevent data leakage, the most recent 20% of the dataset was entirely hidden during the training phase. 
+    The chart plots how accurately the trained XGBoost model predicted this unseen "future" holdout window compared to the true actuals and a simple seasonal naive baseline (which just assumes demand matches exactly 168 hours prior).
+    """)
 
     st.subheader("Feature Correlation")
     from backend.features import build_training_frame
