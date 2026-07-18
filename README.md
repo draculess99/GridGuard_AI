@@ -25,16 +25,25 @@ The numerical forecast and decision explanation are intentionally separated:
 - **XGBoost** predicts future demand.
 - A deterministic **internal expert system** converts forecast conditions into transparent operational rules.
 - **Local RAG** retrieves relevant policy and governance material.
-- Optional **Grok, Groq, or Gemini** providers turn grounded evidence into an operator briefing.
+- Optional **Groq, or Gemini** providers turn grounded evidence into an operator briefing.
 - A human operator remains responsible for every recorded decision.
 
 > GridGuard is an operational analytics demonstration. It does not autonomously control generation, transmission, customer load, or critical infrastructure.
 
 ---
 
-## Screenshots
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-*(Place your actual screenshot images into the `docs/images/` folder and they will appear here)*
+## Project Links
+
+- **Live Demo:** https://workforceagenticall-production.up.railway.app/GridGuard_AI/
+- **GitHub Repository:** https://github.com/draculess99/GridGuard_AI/
+- **LinkedIn:** https://www.linkedin.com/in/gammaconsult/
+- **Portfolio:** https://draculess99.github.io/
+
+---
+
+## Screenshots
 
 | Control Tower & Forecast | Multi-Agent Debate Committee |
 |:---:|:---:|
