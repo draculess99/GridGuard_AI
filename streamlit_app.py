@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -604,6 +605,12 @@ with tab_model:
 
     benchmark_json_path = "artifacts/gridguard_benchmark.json"
     benchmark_csv_path = "artifacts/gridguard_benchmark.csv"
+    
+    if st.button("🚀 Generate Benchmark Artifacts", type="primary", use_container_width=True):
+        with st.spinner(f"Running benchmark engine in {data_mode} mode..."):
+            subprocess.run(["python", "scripts/run_benchmark.py", "--mode", data_mode])
+        st.success("Benchmark artifacts generated successfully!")
+        st.rerun()
     
     dl_col1, dl_col2, dl_col3 = st.columns([1, 1, 2])
     with dl_col1:
