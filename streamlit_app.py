@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -608,8 +609,18 @@ with tab_model:
     
     if st.button("🚀 Generate Benchmark Artifacts", type="primary", use_container_width=True):
         with st.spinner(f"Running benchmark engine in {data_mode} mode..."):
-            subprocess.run(["python", "scripts/run_benchmark.py", "--mode", data_mode])
-        st.success("Benchmark artifacts generated successfully!")
+            env = os.environ.copy()
+            env["PYTHONPATH"] = os.path.abspath(os.getcwd())
+            result = subprocess.run(
+                [sys.executable, "scripts/run_benchmark.py", "--mode", data_mode], 
+                env=env, 
+                capture_output=True, 
+                text=True
+            )
+            if result.returncode == 0:
+                st.success("Benchmark artifacts generated successfully!")
+            else:
+                st.error(f"Failed to generate artifacts. Error: {result.stderr}")
         st.rerun()
     
     json_exists = os.path.exists(benchmark_json_path)
