@@ -612,15 +612,23 @@ with tab_model:
         st.success("Benchmark artifacts generated successfully!")
         st.rerun()
     
+    json_exists = os.path.exists(benchmark_json_path)
+    csv_exists = os.path.exists(benchmark_csv_path)
+
     dl_col1, dl_col2, dl_col3 = st.columns([1, 1, 2])
     with dl_col1:
-        if os.path.exists(benchmark_json_path):
+        if json_exists:
             with open(benchmark_json_path, "rb") as f:
                 st.download_button("📥 Download Benchmark JSON", f, file_name="gridguard_benchmark.json", mime="application/json", use_container_width=True)
+        else:
+            st.download_button("📥 Download Benchmark JSON", "", disabled=True, use_container_width=True)
+            
     with dl_col2:
-        if os.path.exists(benchmark_csv_path):
+        if csv_exists:
             with open(benchmark_csv_path, "rb") as f:
                 st.download_button("📥 Download Benchmark CSV", f, file_name="gridguard_benchmark.csv", mime="text/csv", use_container_width=True)
+        else:
+            st.download_button("📥 Download Benchmark CSV", "", disabled=True, use_container_width=True)
 
     imp = bundle.feature_importance.head(15).sort_values("importance")
     imp_fig = go.Figure(go.Bar(x=imp["importance"], y=imp["feature"], orientation="h"))
