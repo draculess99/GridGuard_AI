@@ -72,6 +72,8 @@ The numerical forecast and decision explanation are intentionally separated:
 | Data | Common canonical schema and source profile | Completed |
 | Forecast | XGBoost recursive 12–48 hour load forecast | Completed |
 | Benchmark | Seasonal-naive weekly-lag baseline | Completed |
+| Benchmark | Automated programmatic benchmarking and JSON/CSV artifact generation | Completed |
+| Benchmark | Simulated operational benchmark for what-if grid response evaluation | Completed |
 | Governance | Chronological holdout evaluation | Completed |
 | Risk | Peak, capacity, reserve-margin and high-risk-hour assessment | Completed |
 | Scenarios | Temperature, generation-outage and demand-shock simulation | Completed |
@@ -663,7 +665,9 @@ The current PostgreSQL scope stores human decision audits in `gridguard_decision
 ### Model Quality
 
 - chronological holdout metrics;
-- XGBoost versus seasonal-naive comparison;
+- XGBoost versus seasonal-naive comparison (RMSE & MAE improvement);
+- dynamic data provenance disclosure (synthetic vs historical);
+- benchmark JSON and CSV artifact download buttons;
 - feature importance;
 - model-governance warning.
 
