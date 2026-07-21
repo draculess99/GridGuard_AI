@@ -474,7 +474,7 @@ def load_kaggle_demand(
 
 
 def configured_kaggle_path() -> str:
-    return os.getenv("GRIDGUARD_KAGGLE_DATA_PATH", "data/kaggle/hourly_energy_consumption.csv").strip()
+    return os.getenv("GRIDGUARD_KAGGLE_DATA_PATH", "data/kaggle/hourly_energy_consumption_synthetic_benchmark.csv").strip()
 
 
 def data_source_catalog(kaggle_available: bool | None = None) -> list[dict[str, Any]]:

@@ -169,7 +169,7 @@ with st.sidebar:
         else:
             kaggle_path = st.text_input(
                 "Local Kaggle file",
-                value=os.getenv("GRIDGUARD_KAGGLE_DATA_PATH", "data/kaggle/hourly_energy_consumption.csv"),
+                value=os.getenv("GRIDGUARD_KAGGLE_DATA_PATH", "data/kaggle/hourly_energy_consumption_synthetic_benchmark.csv"),
             )
             if kaggle_path:
                 kaggle_source = kaggle_path
@@ -587,17 +587,33 @@ with tab_scenario:
     st.info(srisk["recommendation"])
 
 with tab_model:
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("XGBoost MAE", f"{bundle.metrics['xgb_mae']:,.0f} MW")
-    m2.metric("Naive MAE", f"{bundle.metrics['naive_mae']:,.0f} MW")
-    m3.metric("XGBoost RMSE", f"{bundle.metrics['xgb_rmse']:,.0f} MW")
-    improvement = bundle.metrics["mae_improvement_pct"]
-    m4.metric("MAE improvement", f"{improvement:.1f}%")
+    st.markdown(f"**Data Provenance**: {bundle.metrics.get('evaluation_type', 'Historical chronological holdout')}")
 
+    m1, m2, m3, m4, m5 = st.columns(5)
+    m1.metric("RMSE improvement", f"{bundle.metrics.get('rmse_improvement_pct', 0):.1f}%")
+    m2.metric("MAE improvement", f"{bundle.metrics.get('mae_improvement_pct', 0):.1f}%")
+    m3.metric("XGBoost RMSE", f"{bundle.metrics.get('xgb_rmse', 0):,.0f} MW")
+    m4.metric("Seasonal-naive RMSE", f"{bundle.metrics.get('naive_rmse', 0):,.0f} MW")
+    m5.metric("Holdout observations", f"{bundle.metrics.get('test_rows', 0):,}")
+
+    improvement = bundle.metrics.get("mae_improvement_pct", 0)
     if improvement > 0:
         st.success("XGBoost beats the seasonal-naive baseline on the chronological holdout.")
     else:
         st.warning("XGBoost does not beat the seasonal-naive baseline yet. Treat the baseline as the selected model until features or tuning improve.")
+
+    benchmark_json_path = "artifacts/gridguard_benchmark.json"
+    benchmark_csv_path = "artifacts/gridguard_benchmark.csv"
+    
+    dl_col1, dl_col2, dl_col3 = st.columns([1, 1, 2])
+    with dl_col1:
+        if os.path.exists(benchmark_json_path):
+            with open(benchmark_json_path, "rb") as f:
+                st.download_button("📥 Download Benchmark JSON", f, file_name="gridguard_benchmark.json", mime="application/json", use_container_width=True)
+    with dl_col2:
+        if os.path.exists(benchmark_csv_path):
+            with open(benchmark_csv_path, "rb") as f:
+                st.download_button("📥 Download Benchmark CSV", f, file_name="gridguard_benchmark.csv", mime="text/csv", use_container_width=True)
 
     imp = bundle.feature_importance.head(15).sort_values("importance")
     imp_fig = go.Figure(go.Bar(x=imp["importance"], y=imp["feature"], orientation="h"))
